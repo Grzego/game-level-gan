@@ -18,7 +18,7 @@ class MultiEnvironment(object):
         This function changes state of the game executing
         given actions in order
 
-        Returns nothing
+        Returns stetes and rewards for each player
         """
         pass
 
