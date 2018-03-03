@@ -18,34 +18,37 @@ class Pacman(MultiEnvironment):
         self.grid = np.zeros(size + (self.fields + num_players * 2,), dtype=np.int32)
         self.num_players = num_players
         self.players = None  # np.zeros((num_players, 2))
-        self.moves = np.array([[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0]], dtype=np.int32)
+        self.moves = np.array([[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]], dtype=np.int32)
 
     @staticmethod
     def from_str(data: str):
         num_players = sum(x.isdigit() for x in data)
         lines = data.split('\n')
 
-        result = Pacman((len(lines[0]), len(lines)), num_players)
+        result = Pacman((len(lines), len(lines[0])), num_players)
         for i, line in enumerate(lines):
             for j, c in enumerate(line):
                 if c == '#':
-                    result.grid[j, i, 0] = 1
+                    result.grid[i, j, 0] = 1
                 elif c == 's':
-                    result.grid[j, i, 1] = 1
+                    result.grid[i, j, 1] = 1
                 elif c == 'S':
-                    result.grid[j, i, 2] = 1
+                    result.grid[i, j, 2] = 1
                 elif c.isdigit():
-                    result.grid[j, i, result.fields + int(c) - 1] = 1
+                    result.grid[i, j, result.fields + int(c) - 1] = 1
         return result.copy_board(), result.size, result.num_players
 
     def copy_board(self):
         return np.copy(self.grid[:, :, :self.fields + self.num_players])
 
+    def players_layer_shape(self):
+        return self.size + (self.num_players,)
+
     def reset(self, data):
         self.grid[:, :, :self.fields + self.num_players] = data
         positions = np.where(self.grid[:, :, self.fields: self.fields + self.num_players] == 1.)
         self.players = np.array(positions, dtype=np.int32).T[np.argsort(positions[2])][:, :2]
-        return self.step([0] * self.num_players)
+        return self.step([0] * self.num_players)[0]
 
     def _not_blocked(self, positions):
         not_blocked = np.all(positions >= 0, axis=1)
@@ -92,7 +95,7 @@ class Pacman(MultiEnvironment):
 
         # generate new state for each player
         one_hot = np.eye(self.fields + 2 * self.num_players, dtype=np.float32)
-        return tuple((self.grid + one_hot[self.grid_depth + player]).astype(np.float32).transpose((2, 0, 1))
+        return tuple((self.grid + one_hot[self.grid_depth + player]).astype(np.float32)
                      for player in range(self.num_players)), reward
 
     def actions(self):
@@ -112,8 +115,8 @@ class Pacman(MultiEnvironment):
             return ' '
 
         board = [[_field_repr(x, y)
-                  for x in range(self.size[0])]
-                 for y in range(self.size[1])]
+                  for y in range(self.size[1])]
+                 for x in range(self.size[0])]
         return '+' + '-' * self.size[0] + '+\n' + \
                '\n'.join('|' + ''.join(row) + '|' for row in board) + \
                '\n+' + '-' * self.size[0] + '+'
