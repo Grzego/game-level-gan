@@ -46,5 +46,6 @@ class PytorchWrapper(object):
         new_states, rewards = self.env.step(actions)
         return [self._wrap_state(state) for state in new_states], rewards
 
+    @property
     def actions(self):
-        return self.env.actions()
+        return self.env.actions

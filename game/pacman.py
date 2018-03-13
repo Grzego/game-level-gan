@@ -98,6 +98,7 @@ class Pacman(MultiEnvironment):
         return tuple((self.grid + one_hot[self.grid_depth + player]).astype(np.float32)
                      for player in range(self.num_players)), reward
 
+    @property
     def actions(self):
         return 5  # [noop, up, down, left, right]
 

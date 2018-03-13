@@ -12,7 +12,7 @@ class A2CAgent(Agent):
         super(A2CAgent, self).__init__()
         self.num_actions = num_actions
         self.network = network
-        self.optimizer = optim.Adam(network.params(), lr=lr)
+        self.optimizer = optim.Adam(network.parameters(), lr=lr)
         self.discount = discount
         self.beta = beta
         self.states = []

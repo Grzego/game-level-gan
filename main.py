@@ -30,8 +30,8 @@ def main():
     game = PytorchWrapper(Pacman(size, num_players))
 
     # create agents with LSTM policy network
-    agents = [A2CAgent(game.actions(),
-                       LSTMPolicy(game.size, game.depth, game.actions()).cuda(),
+    agents = [A2CAgent(game.actions,
+                       LSTMPolicy(game.size, game.depth, game.actions).cuda(),
                        0.99, beta=0.01)
               for _ in range(game.num_players)]
 
