@@ -32,7 +32,7 @@ def main():
     # create agents with LSTM policy network
     agents = [A2CAgent(game.actions,
                        LSTMPolicy(game.size, game.depth, game.actions).cuda(),
-                       0.99, beta=0.01)
+                       lr=1e-4, discount=0.99, beta=0.01)
               for _ in range(game.num_players)]
 
     for e in range(100000):
