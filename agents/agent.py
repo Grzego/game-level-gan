@@ -26,3 +26,11 @@ class Agent(object):
         to learn from gathered data.
         """
         pass
+
+    @abc.abstractmethod
+    def generator_data(self):
+        """
+        Returns data that generator can use
+        for backward pass.
+        """
+        pass

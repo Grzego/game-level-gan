@@ -1,0 +1,1 @@
+from .pacman_generator import SimplePacmanGenerator

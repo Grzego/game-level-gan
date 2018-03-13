@@ -32,7 +32,10 @@ class PytorchWrapper(object):
         return state.permute(2, 0, 1)[None, ...]
 
     def reset(self, base_board):
-        self.base_board = Variable(torch.from_numpy(base_board.astype(np.float32)), requires_grad=True)
+        if isinstance(base_board, np.ndarray):
+            self.base_board = Variable(torch.from_numpy(base_board.astype(np.float32)), requires_grad=True)
+        else:
+            self.base_board = base_board
         base_board = self.base_board.cuda() if self.use_cuda else self.base_board
         player_layer = Variable(torch.zeros(self.env.players_layer_shape()))
         player_layer = player_layer.cuda() if self.use_cuda else player_layer

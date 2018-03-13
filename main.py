@@ -1,12 +1,5 @@
-import random
-import numpy as np
-import torch
-from torch import nn
-from torch import optim
-from torch.nn import functional as F
-from torch.autograd import Variable
-
 from game import Pacman, PytorchWrapper
+from generators import SimplePacmanGenerator
 from agents import A2CAgent
 from networks import LSTMPolicy
 
@@ -27,18 +20,24 @@ DEFAULT_BOARD = \
 
 
 def main():
-    board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
+    # board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
+
+    size, num_players = (10, 10), 2
+    board_generator = SimplePacmanGenerator(size, num_players)
+    board = board_generator.generate()
+
+    # create game
     game = PytorchWrapper(Pacman(size, num_players))
+
+    # create agents with LSTM policy network
     agents = [A2CAgent(game.actions(),
-                       LSTMPolicy(game.size, game.depth, game.actions()).cuda(), 0.99, beta=0.01)
+                       LSTMPolicy(game.size, game.depth, game.actions()).cuda(),
+                       0.99, beta=0.01)
               for _ in range(game.num_players)]
-    params = sum((list(a.network.parameters()) for a in agents), [])
-    optimizer = optim.Adam(params, lr=1e-4)
-    board_grads = np.zeros_like(board, dtype=np.float32)
+
     for e in range(100000):
         total_rewards = [0] * num_players
         print('Starting episode {}'.format(e))
-        optimizer.zero_grad()
         states = game.reset(board)
         for a in agents:
             a.network.reset_state()
@@ -55,12 +54,13 @@ def main():
                 print(game)
         print('Finished with scores:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards))
         print()
+
+        # backward gradients to board generator with agents data about game
+        board_generator.backward(agents)
+
+        # update agent policies
         for a in agents:
             a.learn()
-        optimizer.step()
-        # add grads
-        board_grads += game.base_board.cpu().grad.data
-        print('Grads: {:15.9f}'.format(np.sum(board_grads**2.)))
 
 
 if __name__ == '__main__':
