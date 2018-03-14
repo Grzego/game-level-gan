@@ -5,6 +5,7 @@ from torch import optim
 from torch.autograd import Variable
 
 from .agent import Agent
+from utils import cudify
 
 
 class A2CAgent(Agent):
@@ -55,7 +56,7 @@ class A2CAgent(Agent):
     def observe(self, reward):
         self.rewards.append(reward)
 
-    def learn(self, use_cuda=True):
+    def learn(self):
         num_steps = len(self.rewards)
         # discount reward over whole episode
         r = 0.
@@ -63,11 +64,8 @@ class A2CAgent(Agent):
         for n in reversed(range(num_steps)):
             rewards[n] = r = self.rewards[n] + self.discount * r
 
-        rewards = Variable(torch.from_numpy(np.array(rewards, dtype=np.float32)))
-        rewards = rewards.cuda() if use_cuda else rewards
-
-        actions = Variable(torch.from_numpy(np.eye(self.num_actions, dtype=np.float32)[np.array(self.actions)]))
-        actions = actions.cuda() if use_cuda else actions
+        rewards = Variable(cudify(torch.from_numpy(np.array(rewards, dtype=np.float32))))
+        actions = Variable(cudify(torch.from_numpy(np.eye(self.num_actions, dtype=np.float32)[np.array(self.actions)])))
 
         policy = torch.cat(self.policies).squeeze()
         value = torch.cat(self.values).squeeze()

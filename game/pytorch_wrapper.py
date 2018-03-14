@@ -1,6 +1,7 @@
-import numpy as np
 import torch
 from torch.autograd import Variable
+
+from utils import cudify
 
 
 class PytorchWrapper(object):
@@ -9,9 +10,8 @@ class PytorchWrapper(object):
     so that generator can use those.
     """
 
-    def __init__(self, env, use_cuda=True):
+    def __init__(self, env):
         self.env = env
-        self.use_cuda = use_cuda
         self.states = None
         self.base_board = None
         self.board = None
@@ -25,22 +25,18 @@ class PytorchWrapper(object):
         return self.env.__repr__()
 
     def _wrap_state(self, state):
-        diff = Variable(state - self.board.cpu().data)
-        diff = diff.cuda() if self.use_cuda else diff
+        diff = cudify(Variable(state - self.board.cpu().data))
         # permute dimensions and add batch dim
         state = self.board + diff
         return state.permute(2, 0, 1)[None, ...]
 
     def reset(self, base_board):
-        if isinstance(base_board, np.ndarray):
-            self.base_board = Variable(torch.from_numpy(base_board.astype(np.float32)), requires_grad=True)
-        else:
-            self.base_board = base_board
-        base_board = self.base_board.cuda() if self.use_cuda else self.base_board
-        player_layer = Variable(torch.zeros(self.env.players_layer_shape()))
-        player_layer = player_layer.cuda() if self.use_cuda else player_layer
-        self.board = torch.cat((base_board, player_layer), dim=-1)
-        return [self._wrap_state(state) for state in self.env.reset(base_board)]
+        if not isinstance(base_board, Variable):
+            raise RuntimeError('base_board is not pytorch Variable!')
+        self.base_board = base_board
+        player_layer = Variable(cudify(torch.zeros(self.env.players_layer_shape())))
+        self.board = torch.cat((self.base_board, player_layer), dim=-1)
+        return [self._wrap_state(state) for state in self.env.reset(base_board.cpu().data.numpy())]
 
     def step(self, actions):
         new_states, rewards = self.env.step(actions)

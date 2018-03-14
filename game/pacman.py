@@ -12,7 +12,7 @@ class Pacman(MultiEnvironment):
     def __init__(self, size: tuple, num_players: int):
         # size == [width, height]
         self.size = size
-        self.fields = 3
+        self.fields = 4
         self.depth = self.fields + num_players * 2
         self.grid_depth = self.fields + num_players
         self.grid = np.zeros(size + (self.fields + num_players * 2,), dtype=np.int32)
@@ -29,13 +29,15 @@ class Pacman(MultiEnvironment):
         for i, line in enumerate(lines):
             for j, c in enumerate(line):
                 if c == '#':
-                    result.grid[i, j, 0] = 1
-                elif c == 's':
                     result.grid[i, j, 1] = 1
-                elif c == 'S':
+                elif c == 's':
                     result.grid[i, j, 2] = 1
+                elif c == 'S':
+                    result.grid[i, j, 3] = 1
                 elif c.isdigit():
                     result.grid[i, j, result.fields + int(c) - 1] = 1
+                else:  # empty
+                    result.grid[i, j, 0] = 1
         return result.copy_board(), result.size, result.num_players
 
     def copy_board(self):
@@ -54,8 +56,8 @@ class Pacman(MultiEnvironment):
         not_blocked = np.all(positions >= 0, axis=1)
         not_blocked &= np.all(positions < self.size, axis=1)
         pos_ins = positions[not_blocked]
-        #                          VVVVVVVV because 0 layer means walls
-        indices = np.r_[pos_ins.T, np.zeros((1, pos_ins.shape[0]), dtype=np.int32)]
+        #                          VVVVVVV because 1 layer means walls
+        indices = np.r_[pos_ins.T, np.ones((1, pos_ins.shape[0]), dtype=np.int32)]
         not_blocked[not_blocked] = self.grid[list(indices)] < 0.5
         return not_blocked
 
@@ -79,9 +81,9 @@ class Pacman(MultiEnvironment):
             self.grid[positions] = 1
 
             # calculate rewards
-            #                                  VVVVVVV because 1 layer means small-pellets and 2 large-pellets
-            small = list(np.r_[self.players.T, np.ones((1, self.num_players), dtype=np.int32)])
-            large = list(np.r_[self.players.T, 2 * np.ones((1, self.num_players), dtype=np.int32)])
+            #                                  VVVVVVVVVVV because 2 layer means small-pellets and 3 large-pellets
+            small = list(np.r_[self.players.T, 2 * np.ones((1, self.num_players), dtype=np.int32)])
+            large = list(np.r_[self.players.T, 3 * np.ones((1, self.num_players), dtype=np.int32)])
             reward = 0.5 * self.grid[small] + self.grid[large]
 
             # split rewards between players
@@ -104,11 +106,11 @@ class Pacman(MultiEnvironment):
 
     def __repr__(self):
         def _field_repr(x, y):
-            if self.grid[x, y, 0] == 1:  # wall
+            if self.grid[x, y, 1] == 1:  # wall
                 return '#'
-            if self.grid[x, y, 1] == 1:  # small reward
+            if self.grid[x, y, 2] == 1:  # small reward
                 return '•'
-            if self.grid[x, y, 2] == 1:  # large reward
+            if self.grid[x, y, 3] == 1:  # large reward
                 return '♦'
             for p in range(self.num_players):
                 if self.grid[x, y, self.fields + p] == 1:
