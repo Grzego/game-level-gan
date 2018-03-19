@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 import torch
@@ -13,6 +14,7 @@ class A2CAgent(Agent):
         super(A2CAgent, self).__init__()
         self.num_actions = num_actions
         self.network = network
+        self.network_copy = copy.deepcopy(self.network)
         self.optimizer = optim.Adam(network.parameters(), lr=lr)
         self.discount = discount
         self.beta = beta
@@ -25,6 +27,10 @@ class A2CAgent(Agent):
         self.g_values = []
 
     def reset(self):
+        self.network.reset_state()
+        self.network_copy.reset_state()
+        self.network_copy.load_state_dict(self.network.state_dict())
+
         self.states = []
         self.actions = []
         self.rewards = []
@@ -37,8 +43,10 @@ class A2CAgent(Agent):
         self.g_values = []
 
     def act(self, state):
+        # stop gradient to state
         policy, value = self.network(state.detach())
-        g_policy, g_value = self.network(state)
+        # stop gradient to network (using its copy)
+        g_policy, g_value = self.network_copy(state)
 
         cpu_policy = policy.cpu().squeeze().data.numpy()
         action = np.random.choice(np.arange(self.num_actions), p=cpu_policy)
@@ -88,10 +96,10 @@ class A2CAgent(Agent):
         # scaled by total reward?
 
         policy = torch.cat(self.g_policies).squeeze()
-        # value = torch.cat(self.g_values).squeeze()
-
+        value = torch.cat(self.g_values).squeeze()
         total_reward = sum(self.rewards)
 
-        entropy = torch.mean(torch.sum(-policy * torch.log(policy + 1e-8), dim=1))
+        # entropy = torch.mean(torch.sum(-policy * torch.log(policy + 1e-8), dim=1))
+
         self.reset_generator()
-        return total_reward * entropy
+        return policy, value, total_reward

@@ -27,3 +27,7 @@ class DQNAgent(Agent):
     def learn(self):
         # TODO: implement
         pass
+
+    def generator_data(self):
+        # TODO: implement
+        pass

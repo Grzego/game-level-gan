@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from torch import optim
+from torch.nn import functional as F
 from torch.autograd import Variable
 
 from utils import cudify, one_hot
@@ -50,6 +51,7 @@ class SimplePacmanGenerator(object):
         self.board_size = board_size
         self.num_players = num_players
         self.levels = []
+        self.level = None
 
         self.generator = cudify(GeneratorNetwork(latent_size, board_size))
         self.optimizer = optim.Adam(self.generator.parameters(), lr=lr)
@@ -65,8 +67,10 @@ class SimplePacmanGenerator(object):
         This function should sample this distributions
         and as a result return `num_samples` levels.
         """
-        noise = Variable(cudify(torch.rand(num_samples, *level.shape)))  # [num_samples, 4, height, width]
-        gumbel = -torch.log(-torch.log(noise))
+        gumbel = cudify(torch.rand(num_samples, *level.shape))  # [num_samples, 4, height, width]
+        gumbel.add_(1e-8).log_().neg_()
+        gumbel.add_(1e-8).log_().neg_()
+        gumbel = Variable(gumbel)
         _, argmax = torch.max(level + gumbel, dim=1)  # [num_samples, height, width]
         levels = one_hot(argmax, dim=1, num_classes=level.size(0))  # [num_samples, 4, height, width]
 
@@ -84,9 +88,9 @@ class SimplePacmanGenerator(object):
         Returned samples are wrapped in Variable to store grads.
         """
         noise = Variable(cudify(torch.randn(1, self.latent_size)))
-        level = self.generator(noise).squeeze()
+        self.level = self.generator(noise).squeeze()
         new_levels = [Variable(cudify(torch.from_numpy(l)), requires_grad=True)
-                      for l in self._sample(level, num_samples)]
+                      for l in self._sample(self.level, num_samples)]
         self.levels += new_levels
         return new_levels
 
@@ -94,17 +98,28 @@ class SimplePacmanGenerator(object):
         """
         Use data stored in agents for gradients calculations.
         """
-        # TODO: implement
+        loss = 0.
         for a in agents:
-            _ = a.generator_data()
-        ...
+            policy, value, total_reward = a.generator_data()
+
+            # aim of this loss is to promote levels that require agents
+            # plans to be more complex
+            loss += torch.mean(1. - torch.pow(policy[1:, :] - policy[:-1, :], 2.))
+
+        loss.backward()
 
     def train(self):
         """
         Uses gradients stored in `self.levels` to train generator.
         """
-        # TODO: implement (sum-up grads and update params)
+        # TODO: implement (sum-up grads and update params) - maybe add auxiliary losses for reward placement
 
+        grads = 0.
+        for l in self.levels:
+            grads += l.grad.data[:, :, :-self.num_players].permute(2, 0, 1)
+
+        self.level.backward(grads)
         self.optimizer.step()
         self.optimizer.zero_grad()
+
         self.levels.clear()

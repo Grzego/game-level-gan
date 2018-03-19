@@ -38,13 +38,12 @@ def main():
     for e in range(100000):
         print('Starting episode {}'.format(e))
 
-        boards = board_generator.generate(num_samples=64)
+        boards = board_generator.generate(num_samples=4)
         for board in boards:
-            # TODO: make agents work on batch levels
+            # TODO: make agents work on batches of levels
             total_rewards = [0] * num_players
             states = game.reset(board)
-            for a in agents:
-                a.network.reset_state()
+
             for _ in range(20):
                 actions = [a.act(s) for a, s in zip(agents, states)]
                 states, rewards = game.step(actions)
