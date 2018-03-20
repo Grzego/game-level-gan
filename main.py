@@ -23,7 +23,7 @@ DEFAULT_BOARD = \
 def main():
     # board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
 
-    latent, size, num_players = 128, (10, 10), 2
+    latent, size, num_players = 128, (5, 5), 2
     board_generator = SimplePacmanGenerator(latent, size, num_players)
 
     # create game
@@ -36,6 +36,7 @@ def main():
               for _ in range(game.num_players)]
 
     for e in range(100000):
+        print()
         print('Starting episode {}'.format(e))
 
         boards = board_generator.generate(num_samples=4)
@@ -56,7 +57,6 @@ def main():
                           ('[ ' + '{:6.3f} ' * num_players + ']').format(*rewards))
                     print(game)
             print('Finished with scores:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards))
-            print()
 
             # backward gradients to board generator with agents data about game
             board_generator.backward(agents)

@@ -55,6 +55,7 @@ class SimplePacmanGenerator(object):
         self.level = None
 
         self.target_field_dist = Variable(cudify(torch.from_numpy(np.array([0.7, 0.2, 0.07, 0.03]))).float())
+        self.mean_total_reward = 4.
 
         self.generator = cudify(GeneratorNetwork(latent_size, board_size))
         self.optimizer = optim.Adam(self.generator.parameters(), lr=lr)
@@ -116,6 +117,15 @@ class SimplePacmanGenerator(object):
         Uses gradients stored in `self.levels` to train generator.
         """
         # TODO: implement (sum-up grads and update params) - maybe add auxiliary losses for reward placement
+        # TODO: check if gradients are accumulated correctly
+
+        # constraint total reward
+        loss = 0.
+        for l in self.levels:
+            field_count = l.view(int(np.prod(self.board_size)), -1).sum(0)
+            rewards = 0.5 * field_count[2] + field_count[3]
+            loss += torch.pow(rewards - self.mean_total_reward, 2.)
+        loss.backward()
 
         # sum-up gradients per level (from agent)
         grads = 0.
@@ -123,14 +133,14 @@ class SimplePacmanGenerator(object):
             grads += l.grad.data[:, :, :-self.num_players].permute(2, 0, 1)
 
         # force generator to follow given field distribution
-        level = Variable(self.level.data, requires_grad=True)
-        log_prob = level - level.exp().sum(0, keepdim=True).log()
-        field_prob = log_prob.view(-1, int(np.prod(self.board_size))).mean(1)
-        loss = F.kl_div(field_prob, self.target_field_dist)
-        loss.backward()
+        # level = Variable(self.level.data, requires_grad=True)
+        # log_prob = level - level.exp().sum(0, keepdim=True).log()
+        # field_prob = log_prob.view(-1, int(np.prod(self.board_size))).mean(1)
+        # loss = F.kl_div(field_prob, self.target_field_dist)
+        # loss.backward()
 
         # accumulate gradients from penalty
-        grads += level.grad.data
+        # grads += level.grad.data
 
         # backward all gradients
         self.level.backward(grads)
