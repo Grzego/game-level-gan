@@ -12,7 +12,7 @@ class LSTMPolicy(nn.Module):
         self.conv2 = nn.Conv2d(self.conv1.out_channels, 128, kernel_size=(3, 3))
 
         conv_features = self._conv_pass(input_size, in_channels)
-        self.lstm = nn.LSTM(conv_features, 256)
+        self.lstm = nn.LSTM(conv_features, 512)
         self.policy = nn.Linear(self.lstm.hidden_size, num_actions)
         self.value = nn.Linear(self.lstm.hidden_size, 1)
 

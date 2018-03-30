@@ -13,11 +13,13 @@ class GeneratorNetwork(nn.Module):
         self.height, self.width = output_shape
 
         self.unpack_idea = nn.Sequential(
-            nn.Linear(latent_size, 128 * 4 * 4),
+            nn.Linear(latent_size, 256 * 4 * 4),
             nn.ELU()
         )
         self.make_level = nn.Sequential(
-            nn.ConvTranspose2d(128, 64, kernel_size=(3, 3), stride=2),
+            nn.ConvTranspose2d(256, 128, kernel_size=(3, 3), stride=2),
+            nn.ELU(),
+            nn.ConvTranspose2d(128, 64, kernel_size=(3, 3), stride=1),
             nn.ELU(),
             nn.ConvTranspose2d(64, 4, kernel_size=(3, 3), stride=2),
             # nn.Softmax(dim=-1)  # using gumbel sampling this is not needed
@@ -25,7 +27,7 @@ class GeneratorNetwork(nn.Module):
 
     def forward(self, noise):
         idea = self.unpack_idea(noise)
-        idea = idea.view(idea.size(0), 128, 4, 4)
+        idea = idea.view(idea.size(0), 256, 4, 4)
         level = self.make_level(idea)
 
         crop_h = (level.size(2) - self.height) // 2
@@ -54,7 +56,7 @@ class SimplePacmanGenerator(object):
         self.level = None
 
         self.target_field_dist = Variable(cudify(torch.from_numpy(np.array([0.7, 0.2, 0.07, 0.03]))).float())
-        self.mean_total_reward = 4.
+        self.level_score_cap = 4.
 
         self.generator = cudify(GeneratorNetwork(latent_size, board_size))
         self.optimizer = optim.Adam(self.generator.parameters(), lr=lr)
@@ -100,13 +102,18 @@ class SimplePacmanGenerator(object):
         """
         Use data stored in agents for gradients calculations.
         """
+        # TODO: add loss logging (maybe use tensorboardX package)
+
         loss = 0.
         for a in agents:
-            policy, value, total_reward = a.generator_data()
+            policy, value, rewards = a.generator_data()
 
             # aim of this loss is to promote levels that require agents
             # plans to be more complex
             loss += torch.mean(1. - torch.pow(policy[:, 1:, :] - policy[:, :-1, :], 2.))
+
+            # maybe maximize player score?
+            loss += -0.01 * torch.mean(value)
 
         loss.backward()
 
@@ -117,15 +124,12 @@ class SimplePacmanGenerator(object):
         # TODO: implement (sum-up grads and update params) - maybe add auxiliary losses for reward placement
         # TODO: check if gradients are accumulated correctly
 
-        # constraint total reward
-        # loss = 0.
-        # for l in self.levels:
-        #     field_count = l.view(int(np.prod(self.board_size)), -1).sum(0)
-        #     rewards = 0.5 * field_count[2] + field_count[3]
-        #     loss += torch.pow(rewards - self.mean_total_reward, 2.)
-        # loss.backward()
+        # constraint rewards to be around `self.level_score_cap`
+        rewards = 0.5 * self.levels[:, 2, :, :] + self.levels[:, 3, :, :]
+        rewards = rewards.view(self.levels.size(0), -1).sum(dim=-1)
+        loss = torch.mean(torch.pow(rewards - self.level_score_cap, 2.))
+        loss.backward()
 
-        # sum-up gradients per level (from agent)
         grads = 0.
         grads += self.levels.grad.data[:, :, :, :-self.num_players].permute(0, 3, 1, 2)
 

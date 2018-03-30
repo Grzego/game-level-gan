@@ -99,9 +99,9 @@ class A2CAgent(Agent):
 
         policy = torch.cat(self.g_policies)
         value = torch.cat(self.g_values)
-        total_reward = sum(self.rewards)
+        rewards = Variable(cudify(torch.from_numpy(np.array(self.rewards))))
 
         # entropy = torch.mean(torch.sum(-policy * torch.log(policy + 1e-8), dim=1))
 
         self.reset_generator()
-        return policy, value, total_reward
+        return policy, value, rewards
