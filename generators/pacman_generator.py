@@ -1,11 +1,10 @@
 import torch
 from torch import nn
 from torch import optim
-from torch.nn import functional as F
 from torch.autograd import Variable
 import numpy as np
 
-from utils import cudify, one_hot
+from utils import cudify, one_hot, gumbel_noise
 
 
 class GeneratorNetwork(nn.Module):
@@ -71,32 +70,31 @@ class SimplePacmanGenerator(object):
         This function should sample this distributions
         and as a result return `num_samples` levels.
         """
-        gumbel = cudify(torch.rand(num_samples, *level.shape))  # [num_samples, 4, height, width]
-        gumbel.add_(1e-8).log_().neg_()
-        gumbel.add_(1e-8).log_().neg_()
-        gumbel = Variable(gumbel)
+        gumbel = gumbel_noise(level.shape)  # [num_samples, 4, height, width]
         _, argmax = torch.max(level + gumbel, dim=1)  # [num_samples, height, width]
-        levels = one_hot(argmax, dim=1, num_classes=level.size(0))  # [num_samples, 4, height, width]
+        levels = one_hot(argmax, dim=1, num_classes=level.size(1))  # [num_samples, 4, height, width]
 
         # add players
         for x, y in [(0, 0), (-1, -1), (0, -1), (-1, 0)][:self.num_players]:
             levels[:, :, x, y] = 0
 
-        # returns numpy array (gradient cannot flow anyway)
         levels = torch.cat((levels, self.players.expand(num_samples, *self.players.shape[1:])), dim=1)
-        return levels.permute(0, 2, 3, 1).cpu().numpy()  # TODO: remove permute (change channel layout in Pacman)
+        return levels.permute(0, 2, 3, 1)  # TODO: remove permute (change channel layout in Pacman)
 
     def generate(self, num_samples=1):
         """
         From random vector generate multiple samples of maps of `board_size`.
         Returned samples are wrapped in Variable to store grads.
         """
-        noise = Variable(cudify(torch.randn(1, self.latent_size)))
-        self.level = self.generator(noise).squeeze()
-        new_levels = [Variable(cudify(torch.from_numpy(l)), requires_grad=True)
-                      for l in self._sample(self.level, num_samples)]
-        self.levels += new_levels
-        return new_levels
+        noise = Variable(cudify(torch.randn(num_samples, self.latent_size)))
+        self.level = self.generator(noise)
+        self.levels = Variable(self._sample(self.level.data, num_samples), requires_grad=True)
+
+        # TODO: check second approach - generate few samples and then their variations and sum grads over variations
+        # new_levels = [Variable(cudify(torch.from_numpy(l)), requires_grad=True)
+        #               for l in self._sample(self.level, num_samples)]
+        # self.levels += new_levels
+        return self.levels
 
     def backward(self, agents):
         """
@@ -108,7 +106,7 @@ class SimplePacmanGenerator(object):
 
             # aim of this loss is to promote levels that require agents
             # plans to be more complex
-            loss += torch.mean(1. - torch.pow(policy[1:, :] - policy[:-1, :], 2.))
+            loss += torch.mean(1. - torch.pow(policy[:, 1:, :] - policy[:, :-1, :], 2.))
 
         loss.backward()
 
@@ -120,17 +118,16 @@ class SimplePacmanGenerator(object):
         # TODO: check if gradients are accumulated correctly
 
         # constraint total reward
-        loss = 0.
-        for l in self.levels:
-            field_count = l.view(int(np.prod(self.board_size)), -1).sum(0)
-            rewards = 0.5 * field_count[2] + field_count[3]
-            loss += torch.pow(rewards - self.mean_total_reward, 2.)
-        loss.backward()
+        # loss = 0.
+        # for l in self.levels:
+        #     field_count = l.view(int(np.prod(self.board_size)), -1).sum(0)
+        #     rewards = 0.5 * field_count[2] + field_count[3]
+        #     loss += torch.pow(rewards - self.mean_total_reward, 2.)
+        # loss.backward()
 
         # sum-up gradients per level (from agent)
         grads = 0.
-        for l in self.levels:
-            grads += l.grad.data[:, :, :-self.num_players].permute(2, 0, 1)
+        grads += self.levels.grad.data[:, :, :, :-self.num_players].permute(0, 3, 1, 2)
 
         # force generator to follow given field distribution
         # level = Variable(self.level.data, requires_grad=True)
@@ -146,5 +143,3 @@ class SimplePacmanGenerator(object):
         self.level.backward(grads)
         self.optimizer.step()
         self.optimizer.zero_grad()
-
-        self.levels.clear()

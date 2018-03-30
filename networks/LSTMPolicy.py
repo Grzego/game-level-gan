@@ -6,7 +6,7 @@ from torch.autograd import Variable
 
 
 class LSTMPolicy(nn.Module):
-    def __init__(self, input_size, in_channels, num_actions):
+    def __init__(self, input_size, in_channels, num_actions, gumbel=True):
         super(LSTMPolicy, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=(3, 3))
         self.conv2 = nn.Conv2d(self.conv1.out_channels, 128, kernel_size=(3, 3))
@@ -16,6 +16,7 @@ class LSTMPolicy(nn.Module):
         self.policy = nn.Linear(self.lstm.hidden_size, num_actions)
         self.value = nn.Linear(self.lstm.hidden_size, 1)
 
+        self.gumbel = gumbel
         self.state = None
         self.reset_state()
 
@@ -31,10 +32,12 @@ class LSTMPolicy(nn.Module):
     def forward(self, inputs):
         h = F.elu(self.conv1(inputs))
         h = F.elu(self.conv2(h))
-        h = h.view(1, 1, self.lstm.input_size)
+        h = h.view(1, -1, self.lstm.input_size)
         _, self.state = self.lstm(h, self.state)
         h, _ = self.state
-        policy = F.softmax(self.policy(h), dim=-1)
+        policy = self.policy(h)
+        if not self.gumbel:
+            policy = F.softmax(policy, dim=-1)
         value = self.value(h)
         return policy, value
 

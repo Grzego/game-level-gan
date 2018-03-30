@@ -25,16 +25,16 @@ class PytorchWrapper(object):
         return self.env.__repr__()
 
     def _wrap_state(self, state):
-        diff = cudify(Variable(state - self.board.cpu().data))
+        diff = Variable(cudify(state - self.board.cpu().data))
         # permute dimensions and add batch dim
         state = self.board + diff
-        return state.permute(2, 0, 1)[None, ...]
+        return state.permute(0, 3, 1, 2)
 
     def reset(self, base_board):
         if not isinstance(base_board, Variable):
             raise RuntimeError('base_board is not pytorch Variable!')
         self.base_board = base_board
-        player_layer = Variable(cudify(torch.zeros(self.env.players_layer_shape())))
+        player_layer = Variable(cudify(torch.zeros((base_board.size(0),) + self.env.players_layer_shape())))
         self.board = torch.cat((self.base_board, player_layer), dim=-1)
         return [self._wrap_state(state) for state in self.env.reset(base_board.cpu().data.numpy())]
 
