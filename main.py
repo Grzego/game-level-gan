@@ -29,7 +29,7 @@ def main():
     # board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
 
     latent, size, num_players = 128, (5, 5), 2
-    board_generator = SimplePacmanGenerator(latent, size, num_players)
+    board_generator = SimplePacmanGenerator(latent, size, num_players, lr=1e-5)
 
     # create game
     batch_size = 32

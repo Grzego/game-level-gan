@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch import optim
 from torch.autograd import Variable
+from torch.nn import functional as F
 import numpy as np
 
 from utils import cudify, one_hot, gumbel_noise
@@ -55,7 +56,7 @@ class SimplePacmanGenerator(object):
         self.levels = []
         self.level = None
 
-        self.target_field_dist = Variable(cudify(torch.from_numpy(np.array([0.7, 0.2, 0.07, 0.03]))).float())
+        self.target_field_dist = Variable(cudify(torch.from_numpy(np.array([0.4, 0.5, 0.07, 0.03]))).float())
         self.level_score_cap = 4.
 
         self.generator = cudify(GeneratorNetwork(latent_size, board_size))
@@ -110,10 +111,10 @@ class SimplePacmanGenerator(object):
 
             # aim of this loss is to promote levels that require agents
             # plans to be more complex
-            loss += torch.mean(1. - torch.pow(policy[:, 1:, :] - policy[:, :-1, :], 2.))
+            loss += 0.1 * torch.mean(1. - torch.pow(policy[:, 1:, :] - policy[:, :-1, :], 2.))
 
             # maybe maximize player score?
-            loss += -0.01 * torch.mean(value)
+            # loss += -0.01 * torch.mean(value)
 
         loss.backward()
 
@@ -125,23 +126,31 @@ class SimplePacmanGenerator(object):
         # TODO: check if gradients are accumulated correctly
 
         # constraint rewards to be around `self.level_score_cap`
-        rewards = 0.5 * self.levels[:, 2, :, :] + self.levels[:, 3, :, :]
-        rewards = rewards.view(self.levels.size(0), -1).sum(dim=-1)
-        loss = torch.mean(torch.pow(rewards - self.level_score_cap, 2.))
-        loss.backward()
+        # rewards = 0.5 * self.levels[:, 2, :, :] + self.levels[:, 3, :, :]
+        # rewards = rewards.view(self.levels.size(0), -1).sum(dim=-1)
+        # loss = 10. * torch.mean(torch.pow(rewards - self.level_score_cap, 2.))
+        # loss.backward()
+
+        # penalize symatric boards
+        if self.board_size[0] == self.board_size[1]:
+            level_part = self.levels[:, :, :, :4]
+            loss = torch.pow(level_part - level_part.permute(0, 2, 1, 3), 2.)
+            loss *= Variable(1. - cudify(torch.eye(self.board_size[0])[None, ..., None]))  # diag should not count
+            loss = 0.1 * torch.mean(loss)
+            loss.backward()
 
         grads = 0.
         grads += self.levels.grad.data[:, :, :, :-self.num_players].permute(0, 3, 1, 2)
 
         # force generator to follow given field distribution
-        # level = Variable(self.level.data, requires_grad=True)
-        # log_prob = level - level.exp().sum(0, keepdim=True).log()
-        # field_prob = log_prob.view(-1, int(np.prod(self.board_size))).mean(1)
-        # loss = F.kl_div(field_prob, self.target_field_dist)
-        # loss.backward()
+        level = Variable(self.level.data, requires_grad=True)
+        log_prob = level - level.exp().sum(0, keepdim=True).log()
+        field_prob = log_prob.view(-1, 4, int(np.prod(self.board_size))).mean(dim=2).mean(dim=0)
+        loss = F.kl_div(field_prob, self.target_field_dist)
+        loss.backward()
 
         # accumulate gradients from penalty
-        # grads += level.grad.data
+        grads += level.grad.data
 
         # backward all gradients
         self.level.backward(grads)
