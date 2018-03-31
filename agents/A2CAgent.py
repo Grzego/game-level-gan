@@ -14,8 +14,7 @@ class A2CAgent(Agent):
     def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01):
         super(A2CAgent, self).__init__()
         self.num_actions = num_actions
-        self.network = network
-        self.network_copy = copy.deepcopy(self.network)
+        self.network = cudify(network)
         self.optimizer = optim.Adam(network.parameters(), lr=lr)
         self.discount = discount
         self.beta = beta
@@ -24,13 +23,9 @@ class A2CAgent(Agent):
         self.rewards = []
         self.policies = []
         self.values = []
-        self.g_policies = []
-        self.g_values = []
 
     def reset(self):
         self.network.reset_state()
-        self.network_copy.reset_state()
-        self.network_copy.load_state_dict(self.network.state_dict())
 
         self.states = []
         self.actions = []
@@ -38,17 +33,9 @@ class A2CAgent(Agent):
         self.policies = []
         self.values = []
 
-    def reset_generator(self):
-        # values and policies graph nodes for generator
-        self.g_policies = []
-        self.g_values = []
-
     def act(self, state):
         # stop gradient to state
         policy, value = self.network(state.detach())
-
-        # stop gradient to network (using its copy)
-        g_policy, g_value = self.network_copy(state)
 
         sq_policy = policy.squeeze()
         gumbel = Variable(gumbel_noise(sq_policy.shape))
@@ -58,9 +45,6 @@ class A2CAgent(Agent):
         self.actions.append(action)
         self.policies.append(F.softmax(policy, dim=-1))
         self.values.append(value)
-
-        self.g_policies.append(F.softmax(g_policy, dim=-1))
-        self.g_values.append(g_value)
 
         return action.data.cpu().numpy()
 
@@ -92,16 +76,3 @@ class A2CAgent(Agent):
         self.optimizer.step()
         self.optimizer.zero_grad()
         self.reset()
-
-    def generator_data(self):
-        # entropy of actions?
-        # scaled by total reward?
-
-        policy = torch.cat(self.g_policies)
-        value = torch.cat(self.g_values)
-        rewards = Variable(cudify(torch.from_numpy(np.array(self.rewards))))
-
-        # entropy = torch.mean(torch.sum(-policy * torch.log(policy + 1e-8), dim=1))
-
-        self.reset_generator()
-        return policy, value, rewards

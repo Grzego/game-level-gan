@@ -1,10 +1,12 @@
 import os
 import torch
+from torch.autograd import Variable
 import numpy as np
+
 from game import Pacman, PytorchWrapper
 from generators import SimplePacmanGenerator
 from agents import A2CAgent
-from networks import LSTMPolicy
+from networks import LSTMPolicy, WinnerDiscriminator
 from utils import find_next_run_dir
 from utils.pytorch_utils import cudify
 
@@ -35,9 +37,12 @@ def main():
     batch_size = 32
     game = PytorchWrapper(Pacman(size, num_players, batch_size))
 
+    # create discriminator for predicting winners
+    discriminator = WinnerDiscriminator(game.size, game.grid_depth, num_players)
+
     # create agents with LSTM policy network
     agents = [A2CAgent(game.actions,
-                       cudify(LSTMPolicy(game.size, game.depth, game.actions)),
+                       LSTMPolicy(game.size, game.depth, game.actions),
                        lr=1e-4, discount=0.99, beta=0.01)
               for _ in range(game.num_players)]
 
@@ -47,8 +52,10 @@ def main():
         print()
         print('Starting episode {}'.format(e))
 
+        # generate boards
         boards = board_generator.generate(num_samples=batch_size)
-        # TODO: make agents work on batches of levels
+
+        # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))
         states = game.reset(boards)
 
@@ -65,15 +72,21 @@ def main():
                 print(game)
         print('Finished with scores:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]))
 
-        # backward gradients to board generator with agents data about game
-        board_generator.backward(agents)
-
         # update agent policies
         for a in agents:
             a.learn()
 
-        # use gradients to train generator
-        board_generator.train()
+        # board to PyTorch format
+        boards = boards.permute(0, 3, 1, 2)
+
+        # discriminator calculate loss and perform backward pass
+        winners = np.argmax(total_rewards, axis=1)
+        winners = Variable(cudify(torch.from_numpy(winners)))
+        discriminator.train(boards.detach(), winners)
+
+        # compute gradient for generator
+        pred_winners = discriminator.forward(boards)
+        board_generator.train(pred_winners)
 
         if e % 1000 == 0:
             # save models
