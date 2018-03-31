@@ -108,3 +108,5 @@ class SimplePacmanGenerator(object):
         self.level.backward(grad)
         self.optimizer.step()
         self.optimizer.zero_grad()
+
+        return loss.data.cpu().numpy()[0]

@@ -76,3 +76,5 @@ class A2CAgent(Agent):
         self.optimizer.step()
         self.optimizer.zero_grad()
         self.reset()
+
+        return loss.data.cpu().numpy()[0], torch.mean(value).data.cpu().numpy()[0]

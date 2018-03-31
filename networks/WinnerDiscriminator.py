@@ -57,3 +57,5 @@ class WinnerDiscriminator(object):
         loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
+
+        return loss.data.cpu().numpy()[0]
