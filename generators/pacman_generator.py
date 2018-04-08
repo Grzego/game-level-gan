@@ -101,7 +101,7 @@ class SimplePacmanGenerator(object):
         """
 
         prob = torch.ones_like(pred_winners) / self.num_players
-        loss = -torch.mean(prob * torch.log(pred_winners) + (1. - prob) * torch.log(1. - pred_winners))
+        loss = -torch.mean(prob * torch.log(pred_winners + 1e-8) + (1. - prob) * torch.log(1. - pred_winners + 1e-8))
         loss.backward()
 
         grad = self.levels.grad.data[:, :, :, :-self.num_players].permute(0, 3, 1, 2)

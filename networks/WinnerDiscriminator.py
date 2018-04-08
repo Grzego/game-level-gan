@@ -20,14 +20,14 @@ class DiscriminatorNetwork(nn.Module):
             nn.ELU(),
             nn.Conv2d(64, 128, kernel_size=(3, 3), stride=1),
             nn.ELU(),
-            # nn.Conv2d(128, 256, kernel_size=(3, 3), stride=1),
-            # nn.ELU()
+            nn.Conv2d(128, 256, kernel_size=(1, 1), stride=1),
+            nn.ELU()
         )
 
         self.prediction = nn.Sequential(
-            nn.Linear(self.feature_size(), 256),
+            nn.Linear(self.feature_size(), 512),
             nn.ELU(),
-            nn.Linear(256, num_players),
+            nn.Linear(512, num_players),
             nn.Softmax(dim=-1)
         )
 
@@ -49,13 +49,14 @@ class WinnerDiscriminator(object):
         return self.network(boards)
 
     def loss(self, boards, winners):
-        pred_winners = self.network(boards)
-        return F.cross_entropy(pred_winners, winners)
+        prob_winners = self.network(boards)
+        _, pred_winners = torch.max(prob_winners, dim=-1)
+        return F.cross_entropy(prob_winners, winners), winners.long().eq(pred_winners.long()).float().mean()
 
     def train(self, boards, winners):
-        loss = self.loss(boards, winners)
+        loss, acc = self.loss(boards, winners)
         loss.backward()
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-        return loss.data.cpu().numpy()[0]
+        return loss.data.cpu().numpy()[0], acc.data.cpu().numpy()[0]

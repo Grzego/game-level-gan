@@ -66,11 +66,11 @@ class A2CAgent(Agent):
 
         advantage = rewards - value
         # MSE on rewards and values
-        loss = 0.5 * torch.sum(torch.pow(advantage, 2.))
+        loss = 0.5 * torch.mean(torch.pow(advantage, 2.))
         # CE on policy and actions
-        loss -= torch.sum(advantage.detach() * torch.log(torch.sum(actions * policy, dim=1) + 1e-8))
+        loss -= torch.mean(advantage.detach() * torch.log(torch.sum(actions * policy, dim=1) + 1e-8))
         # entropy pentalty
-        loss += self.beta * torch.sum(policy * torch.log(policy + 1e-8))
+        loss += self.beta * torch.mean(torch.sum(policy * torch.log(policy + 1e-8), dim=-1))
         loss.backward()
 
         self.optimizer.step()
