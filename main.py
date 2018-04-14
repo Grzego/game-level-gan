@@ -4,27 +4,12 @@ from torch.autograd import Variable
 import numpy as np
 from tensorboardX import SummaryWriter
 
-from game import Pacman, PytorchWrapper
-from generators import SimplePacmanGenerator
+from game import Race, RaceCar
 from agents import A2CAgent
-from networks import LSTMPolicy, WinnerDiscriminator
+from networks import ConvLSTMPolicy, WinnerDiscriminator
 from utils import find_next_run_dir, find_latest
-from utils.pytorch_utils import cudify
+from utils.pytorch_utils import cudify, tensor_from_list
 
-# DEFAULT_BOARD = np.array([[[0, 0, 1, 0, 0], [0, 0, 0, 1, 0]],
-#                           [[0, 0, 0, 0, 1], [0, 1, 0, 0, 0]]], dtype=np.int32)
-
-DEFAULT_BOARD = \
-    """
-########
-#2    s#
-#### # #
-#   S  #
-#s ##  #
-##  #  #
-#S  # 1#
-########
-"""[1:-1]
 
 resume = None  # os.path.join('experiments', 'run-6')
 
@@ -33,18 +18,21 @@ def main():
     # board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
 
     latent, size, num_players = 128, (5, 5), 2
-    board_generator = SimplePacmanGenerator(latent, size, num_players, lr=1e-6)
+    # TODO: add race track generator
+    board_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
     batch_size = 64
-    game = PytorchWrapper(Pacman(size, num_players, batch_size))
+    game = Race(timeout=30., cars=[RaceCar(max_speed=100., max_angle=45.),
+                                   RaceCar(max_speed=80., max_angle=60.)])
 
     # create discriminator for predicting winners
-    discriminator = WinnerDiscriminator(game.size, game.grid_depth, num_players, lr=1e-5)
+    # TODO: add race track winner discriminator
+    discriminator = RaceWinnerDiscriminator(board_generator.board_shape(), num_players, lr=1e-5)
 
     # create agents with LSTM policy network
     agents = [A2CAgent(game.actions,
-                       LSTMPolicy(game.size, game.depth, game.actions),
+                       LSTMPolicy(game.state_shape(), game.actions),
                        lr=1e-5, discount=0.9, beta=0.01)
               for _ in range(game.num_players)]
 
@@ -64,14 +52,14 @@ def main():
         print(f'Starting episode {e}')
 
         # generate boards
-        boards = board_generator.generate(num_samples=batch_size)
+        boards = board_generator.generate(num_samples=batch_size, num_segments=64)
 
         # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))
         states = game.reset(boards)
 
         for _ in range(20):
-            actions = np.array([a.act(s) for a, s in zip(agents, states)]).T
+            actions = tensor_from_list([a.act(s) for a, s in zip(agents, states)])
             states, rewards = game.step(actions)
             for a, r in zip(agents, rewards):
                 a.observe(r)
@@ -94,49 +82,30 @@ def main():
             for i, a in enumerate(agents):
                 torch.save(a.network.state_dict(), os.path.join(run_path, f'agent_{i}_{e}.pt'))
 
-        if e < 5000:
-            continue
-
-        # board to PyTorch format
-        p_boards = boards.permute(0, 3, 1, 2)
-
         # discriminator calculate loss and perform backward pass
         winners = np.argmax(total_rewards, axis=1)
         winners = Variable(cudify(torch.from_numpy(winners)))
-        dloss, dacc = discriminator.train(p_boards.detach(), winners)
+        dloss, dacc = discriminator.train(boards.detach(), winners)
 
-        summary_writer.add_scalar('summary/discriminator_loss',  dloss, global_step=e)
+        summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=e)
         summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=e)
 
-        if e < 10000:
-            continue
-
         # compute gradient for generator
-        pred_winners = discriminator.forward(p_boards)
+        pred_winners = discriminator.forward(boards)
         gloss = board_generator.train(pred_winners)
 
         summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
 
         if e % 100 == 0:
             # save boards as images in tensorboard
-            n_boards = boards.data.cpu().numpy()  # [batch_size, height, width, depth]
-            n_boards = n_boards[:3, ...]  # pick first 3 boards
-            n_boards = np.argmax(n_boards, axis=-1)
-            colors = np.array([[1., 1., 1.],  # wall
-                               [0., 0., 0.],  # empty
-                               [1., 0.64705882, 0.],  # small reward
-                               [1., 0.84313725, 0.],  # large reward
-                               [0., 1., 0.],  # 1 player
-                               [0., 0., 1.],  # 2 player
-                               [1., 0., 0.],  # 3 player
-                               ])
-            img_boards = colors[n_boards]
+            # TODO: create image of race tracks and save them in tensorboard
+            img_boards = None
             for i, img in enumerate(img_boards):
                 summary_writer.add_image(f'summary/boards_{i}', img, global_step=e)
 
         if e % 1000 == 0:
             torch.save(board_generator.generator.state_dict(), os.path.join(run_path, f'generator_{e}.pt'))
-            torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator{e}.pt'))
+            torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{e}.pt'))
 
 
 if __name__ == '__main__':

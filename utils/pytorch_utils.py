@@ -1,5 +1,6 @@
 import torch
 from torch.autograd import Variable
+import numpy as np
 
 
 def cudify(a, use_cuda=False):
@@ -9,6 +10,10 @@ def cudify(a, use_cuda=False):
     if torch.cuda.is_available() or use_cuda:
         return a.cuda()
     return a
+
+
+def tensor_from_list(ls):
+    return cudify(torch.from_numpy(np.array(ls)))
 
 
 def one_hot(a, dim=-1, num_classes=None):

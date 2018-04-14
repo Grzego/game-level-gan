@@ -11,6 +11,13 @@ class MultiEnvironment(object):
         pass
 
     @abc.abstractmethod
+    def state_shape(self):
+        """
+        Returns shape of game input state
+        """
+        pass
+
+    @abc.abstractmethod
     def reset(self, *args, **kwargs):
         """
         This function resets environment

@@ -22,6 +22,9 @@ class Pacman(MultiEnvironment):
         self.moves = np.zeros((5, 4), dtype=np.int32)
         self.moves[:, 1:3] = np.array([[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]], dtype=np.int32)
 
+    def state_shape(self):
+        return self.size + (self.depth,)
+
     @staticmethod
     def from_str(data: str):
         num_players = sum(x.isdigit() for x in data)
