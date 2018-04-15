@@ -6,7 +6,7 @@ from tensorboardX import SummaryWriter
 
 from game import Race, RaceCar
 from agents import A2CAgent
-from networks import ConvLSTMPolicy, WinnerDiscriminator
+from networks import LSTMPolicy, WinnerDiscriminator
 from utils import find_next_run_dir, find_latest
 from utils.pytorch_utils import cudify, tensor_from_list
 
@@ -23,8 +23,8 @@ def main():
 
     # create game
     batch_size = 64
-    game = Race(timeout=30., cars=[RaceCar(max_speed=100., max_angle=45.),
-                                   RaceCar(max_speed=80., max_angle=60.)])
+    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=2., angle=45.),
+                                   RaceCar(max_speed=80., acceleration=2., angle=60.)])
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
@@ -58,7 +58,7 @@ def main():
         total_rewards = np.zeros((batch_size, num_players))
         states = game.reset(boards)
 
-        for _ in range(20):
+        while not game.finished():
             actions = tensor_from_list([a.act(s) for a, s in zip(agents, states)])
             states, rewards = game.step(actions)
             for a, r in zip(agents, rewards):
