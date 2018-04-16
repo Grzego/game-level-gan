@@ -148,12 +148,12 @@ class Race(MultiEnvironment):
         res = (o1 != o2) & (o3 != o4)
 
         # special cases
-        res |= (o1 == 0.) & _on_segment(p1, q1, p2)
-        res |= (o2 == 0.) & _on_segment(p1, q1, q2)
-        res |= (o3 == 0.) & _on_segment(p2, q2, p1)
-        res |= (o4 == 0.) & _on_segment(p2, q2, q1)
+        res |= (o1 == 0.) & _on_segment(p1, q1, p2).view(n, -1)
+        res |= (o2 == 0.) & _on_segment(p1, q1, q2).view(n, -1)
+        res |= (o3 == 0.) & _on_segment(p2, q2, p1).permute(0, 2, 1).view(n, -1)
+        res |= (o4 == 0.) & _on_segment(p2, q2, q1).permute(0, 2, 1).view(n, -1)
 
-        return res
+        return res.max(dim=-1)[0]  # shape = [N]
 
     def _smallest_distance(self, segments, directions):
         """
