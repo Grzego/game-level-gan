@@ -108,7 +108,7 @@ class Race(MultiEnvironment):
     def _segment_collisions(self, segments, tests):
         """
         Tests collision between every S and P for every N.
-        Returns True/False wherther collision occured.
+        Returns True/False wherther collision occured (shape [N])
 
         segments = [N, S, 4]
         tests = [N, P, 4]
@@ -117,14 +117,50 @@ class Race(MultiEnvironment):
         S - number of segments
         P - number of players
         """
-        pass
+        n = segments.size(0)
+
+        def _orientation(p, q, r):
+            """
+            Returns orientation of r point with respect to segment p -> q
+            (-1, 0, 1) - (widdershins - counterclockwise, clockwise, colinear)
+            """
+            p, q, r = p.unsqueeze(2), q.unsqueeze(2), r.unsqueeze(1)
+            qp = q - p
+            rq = r - q
+            return torch.sign(qp[:, :, :, 1] * rq[:, :, :, 0] - qp[:, :, :, 0] * rq[:, :, :, 1])
+
+        def _on_segment(p, q, r):
+            """
+            Checks whether point r lies on p -> q segment
+            """
+            p, q, r = p.unsqueeze(2), q.unsqueeze(2), r.unsqueeze(1)
+            return (q <= torch.max(p, r)) & (q >= torch.min(p, r))
+
+        p1, q1 = segments[:, :, :2], segments[:, :, 2:]
+        p2, q2 = tests[:, :, :2], tests[:, :, 2:]
+
+        o1 = _orientation(p1, q1, p2).view(n, -1)  # [N, S * P]
+        o2 = _orientation(p1, q1, q2).view(n, -1)  # [N, S * P]
+        o3 = _orientation(p2, q2, p1).permute(0, 2, 1).view(n, -1)  # [N, S * P] - permute to match cases
+        o4 = _orientation(p2, q2, q1).permute(0, 2, 1).view(n, -1)  # [N, S * P]
+
+        # general case
+        res = (o1 != o2) & (o3 != o4)
+
+        # special cases
+        res |= (o1 == 0.) & _on_segment(p1, q1, p2)
+        res |= (o2 == 0.) & _on_segment(p1, q1, q2)
+        res |= (o3 == 0.) & _on_segment(p2, q2, p1)
+        res |= (o4 == 0.) & _on_segment(p2, q2, q1)
+
+        return res
 
     def _smallest_distance(self, segments, directions):
         """
         Returns smallest distances to any segments in given `directions`.
 
         segments = [N, S, 4]
-        directions = [N, D, 2]
+        directions = [N, D, 4]
 
         N - usually batch size or number of boards
         S - number of segments
@@ -197,9 +233,11 @@ class Race(MultiEnvironment):
         obs_angles = torch.linspace(0., math.pi, self.observation_size).repeat(num_boards * self.num_players)
         obs_dirs = self._rotate_vecs(right_dirs.repeat(self.observation_size), obs_angles)
         obs_dirs = obs_dirs.view(-1, self.observation_size, 2)  # [num_boards * num_players, observation_size, 2]
+        obs_segm = new_pos.view(-1, 1, 2).repeat(1, self.observation_size, 1)
+        obs_segm = torch.cat((obs_segm, obs_segm + obs_dirs), dim=-1)
 
         states = cudify(torch.zeros(num_boards * self.num_players, self.observation_size))
-        alive_states = self._smallest_distance(self.bounds[bounds_mask], obs_dirs[alive_mask])
+        alive_states = self._smallest_distance(self.bounds[bounds_mask], obs_segm[alive_mask])
         states[alive_mask] = alive_states.clamp(max=self.max_distance)
 
         return states.permute(1, 0, 2), rewards.t()
