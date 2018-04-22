@@ -12,8 +12,8 @@ def cudify(a, use_cuda=False):
     return a
 
 
-def tensor_from_list(ls):
-    return cudify(torch.from_numpy(np.array(ls)))
+def tensor_from_list(ls, dtype=None):
+    return cudify(torch.from_numpy(np.array(ls, dtype=dtype)))
 
 
 def one_hot(a, dim=-1, num_classes=None):

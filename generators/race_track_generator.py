@@ -33,11 +33,15 @@ class RaceTrackGenerator(object):
     def generate(self, track_length, num_samples=1):
         """
         From random vector generate multiple samples of tracks with `track_length`.
+        Track is a sequence of shape [num_samples, track_length, (arc, width)].
         """
         pass
 
     def train(self, pred_winners):
         """
-
         """
         pass
+
+    @property
+    def track_shape(self):
+        return 2,
