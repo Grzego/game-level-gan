@@ -7,7 +7,7 @@ from torch.autograd import Variable
 
 class ConvLSTMPolicy(nn.Module):
     def __init__(self, input_size, in_channels, num_actions, gumbel=True):
-        super(ConvLSTMPolicy, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=(3, 3))
         self.conv2 = nn.Conv2d(self.conv1.out_channels, 128, kernel_size=(3, 3))
 

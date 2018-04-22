@@ -58,6 +58,9 @@ class Race(MultiEnvironment):
         self.observation_size = observation_size
         self.max_distance = max_distance
 
+    def state_shape(self):
+        return self.observation_size,
+
     def players_layer_shape(self):
         pass
 
@@ -188,7 +191,7 @@ class Race(MultiEnvironment):
 
         dists[collisions] /= denom[collisions]
         dists[~collisions] = float('inf')
-        dists[dists < 0.] = float('int')
+        dists[dists < 0.] = float('inf')
 
         return dists
 

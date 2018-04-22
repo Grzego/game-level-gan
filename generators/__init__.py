@@ -1,1 +1,2 @@
 from .pacman_generator import SimplePacmanGenerator
+from .race_track_generator import RaceTrackGenerator

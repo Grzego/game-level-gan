@@ -12,7 +12,6 @@ from utils import cudify, one_hot, gumbel_noise
 
 class A2CAgent(Agent):
     def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01):
-        super(A2CAgent, self).__init__()
         self.num_actions = num_actions
         self.network = cudify(network)
         self.optimizer = optim.Adam(network.parameters(), lr=lr)

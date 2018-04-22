@@ -6,7 +6,8 @@ from tensorboardX import SummaryWriter
 
 from game import Race, RaceCar
 from agents import A2CAgent
-from networks import LSTMPolicy, WinnerDiscriminator
+from generators import RaceTrackGenerator
+from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest
 from utils.pytorch_utils import cudify, tensor_from_list
 
@@ -19,7 +20,7 @@ def main():
 
     latent, size, num_players = 128, (5, 5), 2
     # TODO: add race track generator
-    board_generator = RaceTrackGenerator(latent, lr=1e-5)
+    track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
     batch_size = 64
@@ -28,7 +29,7 @@ def main():
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
-    discriminator = RaceWinnerDiscriminator(board_generator.board_shape(), num_players, lr=1e-5)
+    discriminator = RaceWinnerDiscriminator(track_generator.track_shape(), num_players, lr=1e-5)
 
     # create agents with LSTM policy network
     agents = [A2CAgent(game.actions,
@@ -52,7 +53,7 @@ def main():
         print(f'Starting episode {e}')
 
         # generate boards
-        boards = board_generator.generate(num_samples=batch_size, num_segments=64)
+        boards = track_generator.generate(track_length=64, num_samples=batch_size)
 
         # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))
@@ -92,7 +93,7 @@ def main():
 
         # compute gradient for generator
         pred_winners = discriminator.forward(boards)
-        gloss = board_generator.train(pred_winners)
+        gloss = track_generator.train(pred_winners)
 
         summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
 
@@ -104,7 +105,7 @@ def main():
                 summary_writer.add_image(f'summary/boards_{i}', img, global_step=e)
 
         if e % 1000 == 0:
-            torch.save(board_generator.generator.state_dict(), os.path.join(run_path, f'generator_{e}.pt'))
+            torch.save(track_generator.generator.state_dict(), os.path.join(run_path, f'generator_{e}.pt'))
             torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{e}.pt'))
 
 
