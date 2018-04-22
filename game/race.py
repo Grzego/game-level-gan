@@ -105,10 +105,11 @@ class Race(MultiEnvironment):
         self.alive = cudify(torch.ByteTensor(num_boards, self.num_players))
         self.alive.fill_(True)
 
-    def _segment_collisions(self, segments, tests):
+    @staticmethod
+    def _segment_collisions(segments, tests):
         """
         Tests collision between every S and P for every N.
-        Returns True/False wherther collision occured (shape [N])
+        Returns True/False wherther collision occured (shape [N, S * P])
 
         segments = [N, S, 4]
         tests = [N, P, 4]
@@ -153,9 +154,10 @@ class Race(MultiEnvironment):
         res |= (o3 == 0.) & _on_segment(p2, q2, p1).permute(0, 2, 1).view(n, -1)
         res |= (o4 == 0.) & _on_segment(p2, q2, q1).permute(0, 2, 1).view(n, -1)
 
-        return res.max(dim=-1)[0]  # shape = [N]
+        return res
 
-    def _smallest_distance(self, segments, directions):
+    @staticmethod
+    def _smallest_distance(segments, directions):
         """
         Returns smallest distances to any segments in given `directions`.
 
@@ -168,7 +170,27 @@ class Race(MultiEnvironment):
 
         Returns tensor with shape [N, D]
         """
-        pass
+        n, d, s = directions.size(0), directions.size(1), segments.size(1)
+
+        # get collisions mask
+        far_dirs = directions.clone()
+        far_dirs[:, :, 2:] *= 10000.
+        collisions = Race._segment_collisions(segments, far_dirs).view(n, s, d)  # [N, S, D]
+
+        p, q = segments[:, :, None, :2], segments[:, :, None, 2:]
+        s, d = directions[:, None, :, :2], directions[:, None, :, 2:]
+
+        qpc = q - p  # [N, S, 1, 2]
+        spc = s - p  # [N, S, D, 2]
+
+        dists = spc[:, :, :, 1] * qpc[:, :, :, 0] - spc[:, :, :, 0] * qpc[:, :, :, 1]  # [N, S, D]
+        denom = d[:, :, :, 1] * qpc[:, :, :, 0] - d[:, :, :, 0] * qpc[:, :, :, 1]  # [N, S, D]
+
+        dists[collisions] /= denom[collisions]
+        dists[~collisions] = float('inf')
+        dists[dists < 0.] = float('int')
+
+        return dists
 
     @staticmethod
     def _rotate_vecs(vectors, angles):
@@ -212,7 +234,8 @@ class Race(MultiEnvironment):
         # pick boards with alive players
         bounds_mask = self.alive.max(dim=-1)[0].nonzero().view(-1)
 
-        is_dead = self._segment_collisions(self.bounds[bounds_mask], paths[alive_mask])
+        seg_col = self._segment_collisions(self.bounds[bounds_mask], paths[alive_mask])
+        is_dead = seg_col.max(dim=-1)[0]  # shape = [N]
         self.alive[alive_mask] = is_dead
 
         # update all player variables
@@ -223,18 +246,17 @@ class Race(MultiEnvironment):
         #  check for reward
         rewards = cudify(torch.zeros(num_boards, self.num_players))
         rewards[alive_mask] = -1. * is_dead  # -1 reward for each player that died
-        rewards[alive_mask] = self._segment_collisions(self.reward_bound[bounds_mask], paths[alive_mask]) == True
+        is_done = torch.max(self._segment_collisions(self.reward_bound[bounds_mask], paths[alive_mask]))[0]
+        rewards[alive_mask] = is_done == True  # cross the finish line; +1 reward
         rewards[rewards == 0.] = -0.01  # small negative reward to encourage finishing race faster
 
         # return states (state is just distances in few directions)
-        angle_r90 = cudify(torch.FloatTensor(num_boards * self.num_players))
-        angle_r90.fill_(-math.pi / 2.)
-        right_dirs = self._rotate_vecs(new_dirs.view(-1, 2), angle_r90)
-        obs_angles = torch.linspace(0., math.pi, self.observation_size).repeat(num_boards * self.num_players)
-        obs_dirs = self._rotate_vecs(right_dirs.repeat(self.observation_size), obs_angles)
+        obs_angles = torch.linspace(-math.pi / 2., math.pi / 2., self.observation_size)
+        obs_angles = obs_angles.repeat(num_boards * self.num_players)
+        obs_dirs = self._rotate_vecs(new_dirs.view(-1, 2).repeat(self.observation_size, 1), obs_angles)
         obs_dirs = obs_dirs.view(-1, self.observation_size, 2)  # [num_boards * num_players, observation_size, 2]
         obs_segm = new_pos.view(-1, 1, 2).repeat(1, self.observation_size, 1)
-        obs_segm = torch.cat((obs_segm, obs_segm + obs_dirs), dim=-1)
+        obs_segm = torch.cat((obs_segm, obs_dirs), dim=-1)
 
         states = cudify(torch.zeros(num_boards * self.num_players, self.observation_size))
         alive_states = self._smallest_distance(self.bounds[bounds_mask], obs_segm[alive_mask])
