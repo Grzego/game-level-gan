@@ -28,33 +28,35 @@ class Race(MultiEnvironment):
         self.cars_max_speed = tensor_from_list([car.max_speed for car in cars], dtype=np.float32)
         self.cars_acceleration = tensor_from_list([car.acceleration for car in cars], dtype=np.float32)
         self.cars_angle = tensor_from_list([car.angle for car in cars], dtype=np.float32)
+        self.num_tracks = None
         self.positions = None
         self.directions = None
         self.speeds = None
         self.alive = None
+        self.scores = None
         self.steps = 0
         self.steps_limit = int(timeout // framerate)
         self.bounds = None
         self.reward_bound = None
-        self.action_speed = tensor_from_list([0.,   # noop
-                                              1.,   # forward
+        self.action_speed = tensor_from_list([0.,  # noop
+                                              1.,  # forward
                                               -1.,  # backward
-                                              0.,   # left
-                                              0.,   # right
-                                              1.,   # forward-left
-                                              1.,   # forward-right
-                                              -1.,  # backward-left
+                                              0.,  # right
+                                              1.,  # forward-right
                                               -1.,  # backward-right
+                                              0.,  # left
+                                              1.,  # forward-left
+                                              -1.,  # backward-left
                                               ], dtype=np.float32)
-        self.action_dirs = tensor_from_list([0.,   # noop
-                                             0.,   # forward
-                                             0.,   # backward
-                                             1.,   # left
-                                             -1.,  # right
-                                             1.,   # forward-left
-                                             -1.,  # forward-right
-                                             1.,   # backward-left
-                                             -1.,  # backward-right
+        self.action_dirs = tensor_from_list([0.,  # noop
+                                             0.,  # forward
+                                             0.,  # backward
+                                             1.,  # right
+                                             1.,  # forward-right
+                                             1.,  # backward-right
+                                             -1.,  # left
+                                             -1.,  # forward-left
+                                             -1.,  # backward-left
                                              ], dtype=np.float32)
         self.observation_size = observation_size
         self.max_distance = max_distance
@@ -74,6 +76,7 @@ class Race(MultiEnvironment):
             width is in range (0, 1) meaning width from (0.5, 1.)
         """
         self.steps = 0
+        self.num_tracks = tracks.size(0)
 
         # add sentinels to tracks (0 in front and 0 in back of track for additional segment)
         num_boards = tracks.size(0)
@@ -109,6 +112,8 @@ class Race(MultiEnvironment):
         self.speeds = cudify(torch.zeros(num_boards, self.num_players))
         self.alive = cudify(torch.ByteTensor(num_boards, self.num_players))
         self.alive.fill_(True)
+        self.scores = cudify(torch.FloatTensor(num_boards, self.num_players))
+        self.scores.fill_(float('inf'))  # time when finished
 
         return self.step(cudify(torch.zeros(num_boards, self.num_players).long()))[0]
 
@@ -224,6 +229,9 @@ class Race(MultiEnvironment):
         self.steps += 1
         num_boards, num_seg = actions.size(0), self.bounds.size(2)
 
+        # if player won/died ignore it's action
+        actions[~self.alive] = 0  # noop
+
         #  choose move vector (thats car and action dependent)
         dir_flag = self.action_dirs[actions.view(-1)]  # [num_boards * num_players]
         angles = self.framerate * dir_flag * self.cars_angle.repeat(num_boards).view(-1)  # [num_boards * num_players]
@@ -242,12 +250,12 @@ class Race(MultiEnvironment):
         rewards = cudify(torch.FloatTensor(num_boards * self.num_players))
         rewards.fill_(-0.01)  # small negative reward over time
 
-        if torch.sum(is_moving) > 0:  # anyone moved
+        if update_mask.shape:  # anyone moved
             # check collisions
             paths = torch.cat((self.positions, new_pos), dim=-1).view(-1, 1, 4)  # [num_boards * num_players, 1, 4]
 
             seg_col = self._segment_collisions(self.bounds[update_mask], paths[update_mask])
-            is_dead = seg_col.squeeze().max(dim=1)[0]
+            is_dead = seg_col.squeeze(dim=-1).max(dim=1)[0]
             self.alive.view(-1)[update_mask] = ~is_dead
 
             #  check for reward
@@ -257,6 +265,11 @@ class Race(MultiEnvironment):
             finish = self._segment_collisions(self.reward_bound[update_mask], paths[update_mask])
             is_done = torch.max(finish.view(update_mask.size(0), -1), dim=-1)[0]
             rewards[update_mask] += is_done.float() - is_dead.float()
+
+            self.alive.view(-1)[update_mask] &= ~is_done
+            # TODO: if wins/dies -> store scores
+            # stop finished players
+            new_speed[~self.alive] = 0.
 
         # update all player variables
         self.directions = new_dirs
@@ -283,11 +296,82 @@ class Race(MultiEnvironment):
         #      all players are crushed     or timeout was reached
         return torch.sum(self.alive) < 0.1 or self.steps > self.steps_limit
 
+    def play(self):
+        """
+        Draws first board and first player in interactive mode.
+        """
+        import time
+        import pyglet as pgl
+        from pyglet.window import key
+
+        window = pgl.window.Window(width=640, height=480, caption='Race')
+        actions = {key.UP: False, key.DOWN: False,
+                   key.LEFT: False, key.RIGHT: False}
+
+        pgl.gl.glClearColor(1., 1., 1., 1.)
+
+        @window.event
+        def on_draw():
+            window.clear()
+
+            scale = 200.  # 1unit == 400px
+            # center on player
+            px, py = scale * self.positions[0, 0, :]
+            px = window.width // 2 - px
+            py = window.height // 2 - py
+            # draw every segment of first track
+            batch = pgl.graphics.Batch()
+            pgl.gl.glLineWidth(10)  # px
+            for x1, y1, x2, y2 in self.bounds[0, :, :]:
+                batch.add(2, pgl.gl.GL_LINES, None,
+                          ('v2i', list(map(int, (x1 * scale + px, y1 * scale + py,
+                                                 x2 * scale + px, y2 * scale + py)))),
+                          ('c3B', (0, 0, 0, 0, 0, 0)))
+            pgl.gl.glLineWidth(30)
+            dx, dy = scale * 0.1 * self.directions[0, 0, :]
+            px, py = window.width // 2, window.height // 2
+            batch.add(2, pgl.gl.GL_LINES, None,
+                      ('v2i', list(map(int, (px, py, px + dx, py + dy)))),
+                      ('c3B', (100, 149, 237, 100, 149, 237)))
+            batch.draw()
+
+        @window.event
+        def on_key_press(symbol, modifiers):
+            if symbol in actions:
+                actions[symbol] = True
+
+        @window.event
+        def on_key_release(symbol, modifiers):
+            if symbol in actions:
+                actions[symbol] = False
+
+        total_time, prev_time = 0., time.time()
+        while not self.finished():
+            delta = time.time() - prev_time
+            prev_time = time.time()
+            total_time += delta
+            while total_time > 0.:
+                total_time -= self.framerate
+                fb = (0, 1, 2)[actions[key.UP] - actions[key.DOWN]]
+                lr = (0, 3, 6)[actions[key.RIGHT] - actions[key.LEFT]]
+                act = cudify(torch.zeros(self.num_tracks, self.num_players).long())
+                act[0, 0] = fb + lr
+                self.step(act)
+
+            for wnd in pgl.app.windows:
+                wnd.switch_to()
+                wnd.dispatch_events()
+                wnd.dispatch_event('on_draw')
+                wnd.flip()
+
+        window.close()
+
     @property
     def actions(self):
         return 9
 
     @staticmethod
     def action_name(a):
-        return ('noop', 'forward', 'backward', 'left', 'right',
-                'forward-left', 'forward-right', 'backward-left', 'backward-right')[a]
+        return ('noop', 'forward', 'backward',
+                'right', 'forward-right', 'backward-right',
+                'left', 'forward-left', 'backward-left')[a]

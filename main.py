@@ -23,10 +23,10 @@ def main():
     track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
-    batch_size = 2
-    num_segments = 4
-    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=2., angle=45.),
-                                   RaceCar(max_speed=80., acceleration=2., angle=60.)])
+    batch_size = 1
+    num_segments = 100
+    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=1., angle=45.),
+                                   RaceCar(max_speed=80., acceleration=1., angle=60.)])
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
@@ -60,6 +60,11 @@ def main():
         # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))
         states = game.reset(boards)
+
+        # TEST
+        game.play()
+        return
+        # -----
 
         while not game.finished():
             actions = tensor_from_list([a.act(s) for a, s in zip(agents, states)])
