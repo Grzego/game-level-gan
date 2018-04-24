@@ -24,7 +24,7 @@ def main():
 
     # create game
     batch_size = 1
-    num_segments = 100
+    num_segments = 10
     game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=1., angle=45.),
                                    RaceCar(max_speed=80., acceleration=1., angle=60.)])
 
@@ -55,7 +55,9 @@ def main():
 
         # generate boards
         # boards = track_generator.generate(track_length=64, num_samples=batch_size)
-        boards = cudify(torch.zeros(batch_size, num_segments, 2))
+        boards = cudify(torch.rand(batch_size, num_segments, 2))
+        boards[:, :, 0] *= 2.
+        boards[:, :, 0] -= 1.
 
         # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))

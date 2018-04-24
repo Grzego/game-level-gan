@@ -73,7 +73,9 @@ class Race(MultiEnvironment):
 
         where:
             arc is in range (-1, 1) meaning next segment angle from (-90deg, 90deg)
-            width is in range (0, 1) meaning width from (0.5, 1.)
+            width is in range (0, 1) meaning width from (0.15, 0.5)
+
+        # TODO: test different settings
         """
         self.steps = 0
         self.num_tracks = tracks.size(0)
@@ -83,15 +85,22 @@ class Race(MultiEnvironment):
         tracks = torch.cat((cudify(torch.zeros(num_boards, 1, 2)), tracks, cudify(torch.zeros(num_boards, 1, 2))),
                            dim=1)
 
-        arcsum = 0.5 * math.pi * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
+        arcsum = 0.3 * math.pi * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
         segment_vecs = torch.cat((torch.sin(arcsum), torch.cos(arcsum)), dim=2)
 
-        right_vecs = segment_vecs.clone()
-        right_vecs[:, :, 0], right_vecs[:, :, 1] = segment_vecs[:, :, 1], -segment_vecs[:, :, 0]
-        right_vecs *= 0.5 + 0.5 * tracks[:, :, 1:]
+        perp_vecs = segment_vecs.clone()
+        perp_vecs[:, :, 0], perp_vecs[:, :, 1] = segment_vecs[:, :, 1], -segment_vecs[:, :, 0]
+
+        right_vecs = perp_vecs[:, 1:, :] + perp_vecs[:, :-1, :]
+        right_vecs /= right_vecs.norm(p=2., dim=-1, keepdim=True)
+        right_vecs *= 0.15 + 0.35 * tracks[:, :-1, 1:]
+        right_vecs = torch.cat((cudify(torch.zeros(num_boards, 1, 2)), right_vecs), dim=1)
+        right_vecs[:, 0, 0] = 0.15
         left_vecs = -right_vecs
 
         segments = torch.cumsum(segment_vecs, dim=1)
+        segments[:, 1:, :] = segments[:, :-1, :].clone()
+        segments[:, 0, :] = 0.
         right_vecs = segments + right_vecs
         left_vecs = segments + left_vecs
 
@@ -106,7 +115,7 @@ class Race(MultiEnvironment):
         self.bounds = bounds.view(-1, *bounds.shape[-2:])  # [num_boards * num_players, num_segments, 4]
 
         self.positions = cudify(torch.zeros(num_boards, self.num_players, 2))
-        self.positions[:, :, 1] = 1.1  # 1m after a start
+        self.positions[:, :, 1] = 0.1  # 1m after a start
         self.directions = cudify(torch.zeros(num_boards, self.num_players, 2))
         self.directions[:, :, 1] = 1.  # direction vectors should have length = 1.
         self.speeds = cudify(torch.zeros(num_boards, self.num_players))
@@ -327,6 +336,12 @@ class Race(MultiEnvironment):
                           ('v2i', list(map(int, (x1 * scale + px, y1 * scale + py,
                                                  x2 * scale + px, y2 * scale + py)))),
                           ('c3B', (0, 0, 0, 0, 0, 0)))
+            fx1, fy1, fx2, fy2 = self.reward_bound[0, 0, :]
+            batch.add(2, pgl.gl.GL_LINES, None,
+                      ('v2i', list(map(int, (fx1 * scale + px, fy1 * scale + py,
+                                             fx2 * scale + px, fy2 * scale + py)))),
+                      ('c3B', (170, 0, 0, 170, 0, 0)))
+
             pgl.gl.glLineWidth(30)
             dx, dy = scale * 0.1 * self.directions[0, 0, :]
             px, py = window.width // 2, window.height // 2
