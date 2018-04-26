@@ -1,6 +1,5 @@
 import os
 import torch
-from torch.autograd import Variable
 import numpy as np
 from tensorboardX import SummaryWriter
 
@@ -9,7 +8,7 @@ from agents import A2CAgent
 from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest
-from utils.pytorch_utils import cudify, tensor_from_list
+from utils.pytorch_utils import device
 
 
 resume = None  # os.path.join('experiments', 'run-6')
@@ -25,8 +24,8 @@ def main():
     # create game
     batch_size = 1
     num_segments = 10
-    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=1., angle=45.),
-                                   RaceCar(max_speed=80., acceleration=1., angle=60.)])
+    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=1., angle=45.)])#,
+                                   #RaceCar(max_speed=80., acceleration=1., angle=60.)])
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
@@ -55,7 +54,7 @@ def main():
 
         # generate boards
         # boards = track_generator.generate(track_length=64, num_samples=batch_size)
-        boards = cudify(torch.rand(batch_size, num_segments, 2))
+        boards = torch.rand((batch_size, num_segments, 2), device=device)
         boards[:, :, 0] *= 2.
         boards[:, :, 0] -= 1.
 
@@ -69,7 +68,7 @@ def main():
         # -----
 
         while not game.finished():
-            actions = tensor_from_list([a.act(s) for a, s in zip(agents, states)])
+            actions = torch.tensor([a.act(s) for a, s in zip(agents, states)], device=device)
             states, rewards = game.step(actions)
             for a, r in zip(agents, rewards):
                 a.observe(r)
@@ -94,7 +93,7 @@ def main():
 
         # discriminator calculate loss and perform backward pass
         winners = np.argmax(total_rewards, axis=1)
-        winners = Variable(cudify(torch.from_numpy(winners)))
+        winners = torch.tensor(winners, device=device)
         dloss, dacc = discriminator.train(boards.detach(), winners)
 
         summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=e)

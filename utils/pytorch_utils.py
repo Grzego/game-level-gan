@@ -1,19 +1,6 @@
 import torch
-from torch.autograd import Variable
-import numpy as np
 
-
-def cudify(a, use_cuda=False):
-    """
-    Moves tensor/Variable/Module to cuda if available.
-    """
-    if torch.cuda.is_available() or use_cuda:
-        return a.cuda()
-    return a
-
-
-def tensor_from_list(ls, dtype=None):
-    return cudify(torch.from_numpy(np.array(ls, dtype=dtype)))
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
 def one_hot(a, dim=-1, num_classes=None):
@@ -26,19 +13,15 @@ def one_hot(a, dim=-1, num_classes=None):
         dim = len(a.shape)
     if num_classes is None:
         num_classes = torch.max(a)
-    zeros = cudify(torch.zeros(*a.shape[:dim], num_classes, *a.shape[dim:]), use_cuda=a.is_cuda)
-    is_var = isinstance(a, Variable)
-    if is_var:
-        a = a.data
-    encoded = zeros.scatter_(dim, a.unsqueeze(dim), 1)
-    return Variable(encoded) if is_var else encoded
+    zeros = a.new_zeros(*a.shape[:dim], num_classes, *a.shape[dim:])
+    return zeros.scatter_(dim, a.unsqueeze(dim), 1)
 
 
 def gumbel_noise(shape):
     """
     Requires `a` to be values before applying softmax.
     """
-    gumbel = cudify(torch.rand(*shape))
+    gumbel = torch.rand(*shape, device=device)
     gumbel.add_(1e-8).log_().neg_()
     gumbel.add_(1e-8).log_().neg_()
     return gumbel

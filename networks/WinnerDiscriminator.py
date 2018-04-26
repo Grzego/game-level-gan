@@ -2,10 +2,9 @@ import torch
 from torch import nn
 from torch import optim
 from torch.nn import functional as F
-from torch.autograd import Variable
 import numpy as np
 
-from utils import cudify
+from utils import device
 
 
 class DiscriminatorNetwork(nn.Module):
@@ -32,7 +31,7 @@ class DiscriminatorNetwork(nn.Module):
         )
 
     def feature_size(self):
-        return int(np.prod(self.features(Variable(torch.ones(1, self.depth, *self.size))).shape))
+        return int(np.prod(self.features(torch.ones(1, self.depth, *self.size)).shape))
 
     def forward(self, inputs):
         h = self.features(inputs)
@@ -42,7 +41,7 @@ class DiscriminatorNetwork(nn.Module):
 
 class WinnerDiscriminator(object):
     def __init__(self, size, depth, num_players, lr=1e-4):
-        self.network = cudify(DiscriminatorNetwork(size, depth, num_players))
+        self.network = DiscriminatorNetwork(size, depth, num_players).to(device)
         self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
 
     def forward(self, boards):

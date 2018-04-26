@@ -1,11 +1,8 @@
 import torch
 from torch import nn
 from torch import optim
-from torch.autograd import Variable
-from torch.nn import functional as F
-import numpy as np
 
-from utils import cudify, one_hot, gumbel_noise
+from utils import device, gumbel_noise
 
 
 class GeneratorNetwork(nn.Module):
@@ -56,16 +53,16 @@ class SimplePacmanGenerator(object):
         self.levels = None
         self.level = None
 
-        self.target_field_dist = Variable(cudify(torch.from_numpy(np.array([0.4, 0.5, 0.07, 0.03]))).float())
+        self.target_field_dist = torch.tensor([0.4, 0.5, 0.07, 0.03], dtype=torch.float32, device=device)
         self.level_score_cap = 4.
 
-        self.generator = cudify(GeneratorNetwork(latent_size, board_size))
+        self.generator = GeneratorNetwork(latent_size, board_size).to(device)
         self.optimizer = optim.Adam(self.generator.parameters(), lr=lr)
 
         players = torch.zeros(1, num_players, *board_size)
         for i, (x, y) in enumerate([(0, 0), (-1, -1), (0, -1), (-1, 0)][:self.num_players]):
             players[0, i, x, y] = 1
-        self.players = cudify(players)
+        self.players = players.to(device)
 
     def _sample(self, level, num_samples):
         """
@@ -89,9 +86,9 @@ class SimplePacmanGenerator(object):
         From random vector generate multiple samples of maps of `board_size`.
         Returned samples are wrapped in Variable to store grads.
         """
-        noise = Variable(cudify(torch.randn(num_samples, self.latent_size)))
+        noise = torch.randn(num_samples, self.latent_size, device=device)
         self.level = self.generator(noise)
-        self.levels = Variable(self._sample(self.level.data, num_samples), requires_grad=True)
+        self.levels = self._sample(self.level.data, num_samples).requires_grad_()
 
         return self.levels
 
@@ -109,4 +106,4 @@ class SimplePacmanGenerator(object):
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-        return loss.data.cpu().numpy()[0]
+        return loss.item()

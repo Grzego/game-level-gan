@@ -2,7 +2,6 @@ import random
 
 import torch
 from torch import nn
-from torch.autograd import variable
 
 from .agent import Agent
 

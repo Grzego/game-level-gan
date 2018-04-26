@@ -1,19 +1,17 @@
-import copy
 import numpy as np
 
 import torch
 from torch import optim
 from torch.nn import functional as F
-from torch.autograd import Variable
 
 from .agent import Agent
-from utils import cudify, one_hot, gumbel_noise
+from utils import device, gumbel_noise
 
 
 class A2CAgent(Agent):
     def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01):
         self.num_actions = num_actions
-        self.network = cudify(network)
+        self.network = network.to(device)
         self.optimizer = optim.Adam(network.parameters(), lr=lr)
         self.discount = discount
         self.beta = beta
@@ -37,7 +35,7 @@ class A2CAgent(Agent):
         policy, value = self.network(state.detach())
 
         sq_policy = policy.squeeze()
-        gumbel = Variable(gumbel_noise(sq_policy.shape))
+        gumbel = gumbel_noise(sq_policy.shape)
         _, action = torch.max(sq_policy + gumbel, dim=-1)
 
         self.states.append(state)
@@ -58,7 +56,7 @@ class A2CAgent(Agent):
         for n in reversed(range(num_steps)):
             rewards[n, :] = r = self.rewards[n] + self.discount * r
 
-        rewards = Variable(cudify(torch.from_numpy(np.array(rewards.flatten(), dtype=np.float32))))
+        rewards = torch.tensor(rewards.flatten(), dtype=torch.float32, device=device)
         actions = one_hot(torch.cat(self.actions), num_classes=self.num_actions)
         policy = torch.cat(self.policies).view(-1, self.num_actions)
         value = torch.cat(self.values).view(-1)
@@ -76,4 +74,4 @@ class A2CAgent(Agent):
         self.optimizer.zero_grad()
         self.reset()
 
-        return loss.data.cpu().numpy()[0], torch.mean(value).data.cpu().numpy()[0]
+        return loss.item(), torch.mean(value).item()

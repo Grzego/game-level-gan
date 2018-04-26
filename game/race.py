@@ -1,8 +1,7 @@
 import math
 import torch
-import numpy as np
 
-from utils.pytorch_utils import cudify, tensor_from_list
+from utils.pytorch_utils import device
 from .environment import MultiEnvironment
 
 
@@ -25,9 +24,9 @@ class Race(MultiEnvironment):
         self.timeout = timeout
         self.framerate = framerate
         self.num_players = len(cars)
-        self.cars_max_speed = tensor_from_list([car.max_speed for car in cars], dtype=np.float32)
-        self.cars_acceleration = tensor_from_list([car.acceleration for car in cars], dtype=np.float32)
-        self.cars_angle = tensor_from_list([car.angle for car in cars], dtype=np.float32)
+        self.cars_max_speed = torch.tensor([car.max_speed for car in cars], dtype=torch.float32, device=device)
+        self.cars_acceleration = torch.tensor([car.acceleration for car in cars], dtype=torch.float32, device=device)
+        self.cars_angle = torch.tensor([car.angle for car in cars], dtype=torch.float32, device=device)
         self.num_tracks = None
         self.positions = None
         self.directions = None
@@ -38,26 +37,26 @@ class Race(MultiEnvironment):
         self.steps_limit = int(timeout // framerate)
         self.bounds = None
         self.reward_bound = None
-        self.action_speed = tensor_from_list([0.,  # noop
-                                              1.,  # forward
-                                              -1.,  # backward
-                                              0.,  # right
-                                              1.,  # forward-right
-                                              -1.,  # backward-right
-                                              0.,  # left
-                                              1.,  # forward-left
-                                              -1.,  # backward-left
-                                              ], dtype=np.float32)
-        self.action_dirs = tensor_from_list([0.,  # noop
-                                             0.,  # forward
-                                             0.,  # backward
-                                             1.,  # right
-                                             1.,  # forward-right
-                                             1.,  # backward-right
-                                             -1.,  # left
-                                             -1.,  # forward-left
-                                             -1.,  # backward-left
-                                             ], dtype=np.float32)
+        self.action_speed = torch.tensor([0.,  # noop
+                                          1.,  # forward
+                                          -1.,  # backward
+                                          0.,  # right
+                                          1.,  # forward-right
+                                          -1.,  # backward-right
+                                          0.,  # left
+                                          1.,  # forward-left
+                                          -1.,  # backward-left
+                                          ], device=device)
+        self.action_dirs = torch.tensor([0.,  # noop
+                                         0.,  # forward
+                                         0.,  # backward
+                                         1.,  # right
+                                         1.,  # forward-right
+                                         1.,  # backward-right
+                                         -1.,  # left
+                                         -1.,  # forward-left
+                                         -1.,  # backward-left
+                                         ], device=device)
         self.observation_size = observation_size
         self.max_distance = max_distance
 
@@ -82,7 +81,8 @@ class Race(MultiEnvironment):
 
         # add sentinels to tracks (0 in front and 0 in back of track for additional segment)
         num_boards = tracks.size(0)
-        tracks = torch.cat((cudify(torch.zeros(num_boards, 1, 2)), tracks, cudify(torch.zeros(num_boards, 1, 2))),
+        tracks = torch.cat((torch.zeros((num_boards, 1, 2), device=device), tracks,
+                            torch.zeros((num_boards, 1, 2), device=device)),
                            dim=1)
 
         arcsum = 0.3 * math.pi * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
@@ -94,7 +94,7 @@ class Race(MultiEnvironment):
         right_vecs = perp_vecs[:, 1:, :] + perp_vecs[:, :-1, :]
         right_vecs /= right_vecs.norm(p=2., dim=-1, keepdim=True)
         right_vecs *= 0.15 + 0.35 * tracks[:, :-1, 1:]
-        right_vecs = torch.cat((cudify(torch.zeros(num_boards, 1, 2)), right_vecs), dim=1)
+        right_vecs = torch.cat((torch.zeros((num_boards, 1, 2), device=device), right_vecs), dim=1)
         right_vecs[:, 0, 0] = 0.15
         left_vecs = -right_vecs
 
@@ -114,17 +114,16 @@ class Race(MultiEnvironment):
         bounds = bounds.repeat(1, self.num_players, 1, 1)
         self.bounds = bounds.view(-1, *bounds.shape[-2:])  # [num_boards * num_players, num_segments, 4]
 
-        self.positions = cudify(torch.zeros(num_boards, self.num_players, 2))
+        self.positions = torch.zeros((num_boards, self.num_players, 2), device=device)
         self.positions[:, :, 1] = 0.1  # 1m after a start
-        self.directions = cudify(torch.zeros(num_boards, self.num_players, 2))
+        self.directions = torch.zeros((num_boards, self.num_players, 2), device=device)
         self.directions[:, :, 1] = 1.  # direction vectors should have length = 1.
-        self.speeds = cudify(torch.zeros(num_boards, self.num_players))
-        self.alive = cudify(torch.ByteTensor(num_boards, self.num_players))
-        self.alive.fill_(True)
-        self.scores = cudify(torch.FloatTensor(num_boards, self.num_players))
+        self.speeds = torch.zeros((num_boards, self.num_players), device=device)
+        self.alive = torch.ones((num_boards, self.num_players), dtype=torch.uint8, device=device)
+        self.scores = torch.empty((num_boards, self.num_players), dtype=torch.float32, device=device)
         self.scores.fill_(float('inf'))  # time when finished
 
-        return self.step(cudify(torch.zeros(num_boards, self.num_players).long()))[0]
+        return self.step(torch.zeros((num_boards, self.num_players), dtype=torch.int64, device=device))[0]
 
     @staticmethod
     def _segment_collisions(segments, tests, special=False):
@@ -156,7 +155,7 @@ class Race(MultiEnvironment):
             Checks whether point r lies on p -> q segment
             """
             p, q, r = p.unsqueeze(2), q.unsqueeze(2), r.unsqueeze(1)
-            return torch.prod((r <= torch.max(p, q)) & (r >= torch.min(p, q)), dim=-1)
+            return torch.prod((r <= torch.max(p, q)) & (r >= torch.min(p, q)), dim=-1, dtype=torch.uint8)
 
         p1, q1 = segments[:, :, :2], segments[:, :, 2:]
         p2, q2 = tests[:, :, :2], tests[:, :, 2:]
@@ -254,12 +253,12 @@ class Race(MultiEnvironment):
         new_pos = self.positions + new_dirs * new_speed[:, :, None]
 
         # pick boards with alive players
-        update_mask = (self.alive.view(-1) & is_moving).nonzero().squeeze()
+        update_mask = (self.alive.view(-1) & is_moving).nonzero().squeeze(-1)
 
-        rewards = cudify(torch.FloatTensor(num_boards * self.num_players))
+        rewards = torch.empty((num_boards * self.num_players), device=device)
         rewards.fill_(-0.01)  # small negative reward over time
 
-        if update_mask.shape:  # anyone moved
+        if update_mask.numel() > 0:  # anyone moved
             # check collisions
             paths = torch.cat((self.positions, new_pos), dim=-1).view(-1, 1, 4)  # [num_boards * num_players, 1, 4]
 
@@ -294,16 +293,17 @@ class Race(MultiEnvironment):
         obs_segm = new_pos.view(-1, 1, 2).repeat(1, self.observation_size, 1)
         obs_segm = torch.cat((obs_segm, obs_dirs), dim=-1)
 
-        states = cudify(torch.zeros(num_boards * self.num_players, self.observation_size))
-        alive_mask = self.alive.view(-1).nonzero().squeeze()
-        alive_states = self._smallest_distance(self.bounds[alive_mask], obs_segm[alive_mask])
-        states[alive_mask] = alive_states.clamp(max=self.max_distance)
+        states = torch.zeros((num_boards * self.num_players, self.observation_size), device=device)
+        alive_mask = self.alive.view(-1).nonzero().squeeze(-1)
+        if alive_mask.numel() > 0:
+            alive_states = self._smallest_distance(self.bounds[alive_mask], obs_segm[alive_mask])
+            states[alive_mask] = alive_states.clamp(max=self.max_distance)
 
         return states.view(num_boards, self.num_players, -1).permute(1, 0, 2), rewards.view(num_boards, -1).t()
 
     def finished(self):
         #      all players are crushed     or timeout was reached
-        return torch.sum(self.alive) < 0.1 or self.steps > self.steps_limit
+        return torch.sum(self.alive).item() < 0.1 or self.steps > self.steps_limit
 
     def play(self):
         """
@@ -369,7 +369,7 @@ class Race(MultiEnvironment):
                 total_time -= self.framerate
                 fb = (0, 1, 2)[actions[key.UP] - actions[key.DOWN]]
                 lr = (0, 3, 6)[actions[key.RIGHT] - actions[key.LEFT]]
-                act = cudify(torch.zeros(self.num_tracks, self.num_players).long())
+                act = torch.zeros((self.num_tracks, self.num_players), dtype=torch.int64, device=device)
                 act[0, 0] = fb + lr
                 self.step(act)
 

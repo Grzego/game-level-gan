@@ -2,10 +2,8 @@ import torch
 from torch import nn
 from torch import optim
 from torch.nn import functional as F
-from torch.autograd import Variable
-import numpy as np
 
-from utils import cudify
+from utils import device
 
 
 class DiscriminatorNetwork(nn.Module):
@@ -29,7 +27,7 @@ class DiscriminatorNetwork(nn.Module):
 
 class RaceWinnerDiscriminator(object):
     def __init__(self, track_length, num_players, lr=1e-4):
-        self.network = cudify(DiscriminatorNetwork(track_length, num_players))
+        self.network = DiscriminatorNetwork(track_length, num_players).to(device)
         self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
 
     def forward(self, tracks):
@@ -46,4 +44,4 @@ class RaceWinnerDiscriminator(object):
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-        return loss.data.cpu().numpy()[0], acc.data.cpu().numpy()[0]
+        return loss.item(), acc.item()

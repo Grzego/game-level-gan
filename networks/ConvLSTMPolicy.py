@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.autograd import Variable
 
 
 class ConvLSTMPolicy(nn.Module):
@@ -21,7 +20,7 @@ class ConvLSTMPolicy(nn.Module):
         self.reset_state()
 
     def _conv_pass(self, input_size, in_channels):
-        h = Variable(torch.zeros(1, in_channels, *input_size))
+        h = torch.zeros(1, in_channels, *input_size)
         h = self.conv1(h)
         h = self.conv2(h)
         return int(np.prod(h.shape[1:]))
