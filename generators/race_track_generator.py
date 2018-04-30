@@ -7,38 +7,76 @@ from utils import device, gumbel_noise
 
 
 class GeneratorNetwork(nn.Module):
-    def __init__(self, latent_size, output_shape):
+    def __init__(self, latent_size):
         super().__init__()
 
+        self.latent_size = latent_size
+        self.output_size = 2
+        self.internal_size = 256
+
         self.unpack_idea = nn.Sequential(
+            nn.Linear(latent_size, self.internal_size),
+            nn.ELU()
         )
-        self.make_level = nn.Sequential(
-            # nn.Softmax(dim=-1)  # using gumbel sampling this is not needed
+        self.make_level = nn.LSTM(self.output_size, self.internal_size)
+        self.level_widths = nn.Sequential(
+            nn.Linear(self.internal_size, 1),
+            nn.Sigmoid()
+        )
+        self.level_angles = nn.Sequential(
+            nn.Linear(self.internal_size, 1),
+            nn.Tanh()
         )
 
-    def forward(self, noise):
-        pass
+    def forward(self, noise, num_segments):
+        # noise = [batch_size, latent_size]
+        idea = self.unpack_idea(noise)
+        coords = noise.new_zeros((1, noise.size(0), self.output_size))
+
+        level = []
+        idea = (idea, idea)
+        for _ in range(num_segments):
+            coords, idea = self.make_level(coords, idea)
+            level.append(coords)
+        level = torch.cat(level, dim=0).permutate(1, 0, 2)  # [batch_size, num_segments, internal_size]
+
+        flatten = level.view(-1, self.internal_size)
+        widths = self.level_widths(flatten)  # [batch_size * num_segments, 1]
+        angles = self.level_angles(flatten)  # [batch_size * num_segments, 1]
+
+        return torch.cat((angles, widths), dim=-1).view(-1, num_segments, self.output_size)
 
 
 class RaceTrackGenerator(object):
     """
-
+    Generates levels for Race game.
     """
 
     def __init__(self, latent_size, lr=1e-4):
-        pass
+        self.latent_size = latent_size
+        self.generator = GeneratorNetwork(latent_size)
+        self.optimizer = optim.Adam(self.generator.parameters(), lr=lr)
 
     def generate(self, track_length, num_samples=1):
         """
         From random vector generate multiple samples of tracks with `track_length`.
         Track is a sequence of shape [num_samples, track_length, (arc, width)].
         """
-        pass
+        noise = torch.randn((num_samples, self.latent_size), device=device, requires_grad=True)
+        return self.generator(noise, track_length)
 
     def train(self, pred_winners):
         """
+        Generator wants all probabilities to be equal.
         """
-        pass
+        prob = torch.ones_like(pred_winners) / self.num_players
+        loss = -torch.mean(prob * torch.log(pred_winners + 1e-8) + (1. - prob) * torch.log(1. - pred_winners + 1e-8))
+        loss.backward()
+
+        self.optimizer.step()
+        self.optimizer.zero_grad()
+
+        return loss.item()
 
     @property
     def track_shape(self):

@@ -32,6 +32,7 @@ def main():
     # discriminator = RaceWinnerDiscriminator(track_generator.track_shape, num_players, lr=1e-5)
 
     # create agents with LSTM policy network
+    # TODO: implement PPO agents
     agents = [A2CAgent(game.actions,
                        LSTMPolicy(game.state_shape()[0], game.actions),
                        lr=1e-5, discount=0.9, beta=0.01)
@@ -53,20 +54,14 @@ def main():
         print('Starting episode {}'.format(e))
 
         # generate boards
-        # boards = track_generator.generate(track_length=64, num_samples=batch_size)
-        boards = torch.rand((batch_size, num_segments, 2), device=device)
-        boards[:, :, 0] *= 2.
-        boards[:, :, 0] -= 1.
+        boards = track_generator.generate(track_length=64, num_samples=batch_size)
+        # boards = torch.rand((batch_size, num_segments, 2), device=device)
+        # boards[:, :, 0] *= 2.
+        # boards[:, :, 0] -= 1.
 
         # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))
-        states = game.reset(boards)
-
-        # TEST
-        game.play()
-        game.record_episode(os.path.join(run_path, 'videos', 'test'))
-        return
-        # -----
+        states = game.reset(boards.detach())
 
         while not game.finished():
             actions = torch.tensor([a.act(s) for a, s in zip(agents, states)], device=device)
@@ -78,8 +73,7 @@ def main():
             if e % 100 == 0:
                 print(' '.join(game.action_name(a) for a in actions[0]),
                       ('[ ' + '{:6.3f} ' * num_players + ']').format(*[r[0] for r in rewards]))
-                print(game)
-        print('Finished with scores:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]))
+        print('Finished with rewards:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]))
 
         # update agent policies
         for i, a in enumerate(agents):
@@ -93,9 +87,7 @@ def main():
                 torch.save(a.network.state_dict(), os.path.join(run_path, 'agent_{}_{}.pt'.format(i, e)))
 
         # discriminator calculate loss and perform backward pass
-        winners = np.argmax(total_rewards, axis=1)
-        winners = torch.tensor(winners, device=device)
-        dloss, dacc = discriminator.train(boards.detach(), winners)
+        dloss, dacc = discriminator.train(boards.detach(), game.winners())
 
         summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=e)
         summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=e)
@@ -108,9 +100,7 @@ def main():
 
         if e % 100 == 0:
             # save boards as images in tensorboard
-            # TODO: create image of race tracks and save them in tensorboard
-            img_boards = None
-            for i, img in enumerate(img_boards):
+            for i, img in enumerate(game.tracks_images(top_n=3)):
                 summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)
 
         if e % 1000 == 0:

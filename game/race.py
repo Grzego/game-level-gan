@@ -32,6 +32,7 @@ class Race(MultiEnvironment):
         self.directions = None
         self.speeds = None
         self.alive = None
+        self.finishes = None
         self.scores = None
         self.steps = 0
         self.steps_limit = int(timeout // framerate)
@@ -124,6 +125,7 @@ class Race(MultiEnvironment):
         self.alive = torch.ones((num_boards, self.num_players), dtype=torch.uint8, device=device)
         self.scores = torch.empty((num_boards, self.num_players), dtype=torch.float32, device=device)
         self.scores.fill_(float('inf'))  # time when finished
+        self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=device)
 
         return self.step(torch.zeros((num_boards, self.num_players), dtype=torch.int64, device=device))[0]
 
@@ -275,9 +277,11 @@ class Race(MultiEnvironment):
             finish = self._segment_collisions(self.reward_bound[update_mask], paths[update_mask])
             is_done = torch.max(finish.view(update_mask.size(0), -1), dim=-1)[0]
             rewards[update_mask] += is_done.float() - is_dead.float()
-
             self.alive.view(-1)[update_mask] &= ~is_done
-            # TODO: if wins/dies -> store scores
+            self.finishes[update_mask] += is_done
+
+            dead_or_done = (is_dead | is_done).float()
+            self.scores[update_mask] = self.scores[update_mask] * (1. - dead_or_done) + dead_or_done * self.steps
             # stop finished players
             new_speed[~self.alive] = 0.
 
@@ -309,6 +313,22 @@ class Race(MultiEnvironment):
     def finished(self):
         #      all players are crushed     or timeout was reached
         return torch.sum(self.alive).item() < 0.1 or self.steps > self.steps_limit
+
+    def winners(self):
+        """
+        Rules:
+          if any player finished, faster one is a winner
+          if both players are dead, one that survived the longest is a winner
+        """
+        winner = torch.zeros((self.finishes.size(0),), dtype=torch.long, device=device)
+
+        anyone_finished = self.finishes.sum(-1) > 0
+        finished = self.scores[anyone_finished].clone()
+        finished[~self.finishes[anyone_finished]] = float('inf')
+
+        winner[anyone_finished] = torch.argmin(finished, dim=-1)
+        winner[~anyone_finished] = torch.argmax(self.scores[~anyone_finished], dim=-1)
+        return winner
 
     def record_episode(self, filename: str):
         """
@@ -364,6 +384,9 @@ class Race(MultiEnvironment):
         os.makedirs(basepath, exist_ok=True)
         clip = mpy.ImageSequenceClip(list(record), fps=30)
         clip.write_videofile(filename + '.mp4', audio=False, verbose=False)
+
+    def tracks_images(self, top_n=3):
+        pass
 
     def play(self):
         """
