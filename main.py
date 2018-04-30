@@ -64,6 +64,7 @@ def main():
 
         # TEST
         game.play()
+        game.record_episode(os.path.join(run_path, 'videos', 'test'))
         return
         # -----
 

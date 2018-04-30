@@ -59,6 +59,7 @@ class Race(MultiEnvironment):
                                          ], device=device)
         self.observation_size = observation_size
         self.max_distance = max_distance
+        self.history = []  # keeps posision and direction for players on first board
 
     def state_shape(self):
         return self.observation_size,
@@ -78,6 +79,7 @@ class Race(MultiEnvironment):
         """
         self.steps = 0
         self.num_tracks = tracks.size(0)
+        self.history = []
 
         # add sentinels to tracks (0 in front and 0 in back of track for additional segment)
         num_boards = tracks.size(0)
@@ -285,7 +287,7 @@ class Race(MultiEnvironment):
         self.positions = new_pos
 
         # return states (state is just distances in few directions)
-        obs_angles = torch.linspace(-math.pi / 2., math.pi / 2., self.observation_size).view(1, -1)
+        obs_angles = torch.linspace(-math.pi / 2., math.pi / 2., self.observation_size).to(device).view(1, -1)
         obs_angles = obs_angles.repeat(num_boards * self.num_players, 1).view(-1)
         rot_dirs = new_dirs.view(-1, 1, 2).repeat(1, self.observation_size, 1).view(-1, 2)
         obs_dirs = self._rotate_vecs(rot_dirs, obs_angles)
@@ -299,11 +301,69 @@ class Race(MultiEnvironment):
             alive_states = self._smallest_distance(self.bounds[alive_mask], obs_segm[alive_mask])
             states[alive_mask] = alive_states.clamp(max=self.max_distance)
 
+        # record history
+        self.history.append((self.positions[0].tolist(), self.directions[0].tolist()))
+
         return states.view(num_boards, self.num_players, -1).permute(1, 0, 2), rewards.view(num_boards, -1).t()
 
     def finished(self):
         #      all players are crushed     or timeout was reached
         return torch.sum(self.alive).item() < 0.1 or self.steps > self.steps_limit
+
+    def record_episode(self, filename: str):
+        """
+        Saves a movie with gameplay on first track to a file.
+        Requires OpenCV and movie-py.
+
+        filename - without extension
+
+        This method is rather inefficient and should be rarely used.
+        """
+        import os
+        import cv2
+        import moviepy.editor as mpy
+        import numpy as np
+
+        width, height = 320, 240
+        scale = 100.  # 1unit == 400px
+
+        record = 255 * np.ones((self.num_players, len(self.history), height, width, 3), dtype=np.uint8)
+
+        for frame, (positions, directions) in enumerate(self.history):
+            for player, (position, direction) in enumerate(zip(positions, directions)):
+                # center on player
+                px, py = position
+                px *= scale
+                py *= scale
+                px = width // 2 - px
+                py = height // 2 - py
+                # draw every segment of first track
+                for x1, y1, x2, y2 in self.bounds[0, :, :]:
+                    x1, y1, x2, y2 = map(int, (x1 * scale + px, y1 * scale + py,
+                                               x2 * scale + px, y2 * scale + py))
+                    cv2.line(record[player, frame], (x1, height - y1), (x2, height - y2), (0, 0, 0, 0),
+                             thickness=3, lineType=cv2.LINE_AA)
+
+                fx1, fy1, fx2, fy2 = self.reward_bound[0, 0, :]
+                fx1, fy1, fx2, fy2 = map(int, (fx1 * scale + px, fy1 * scale + py,
+                                               fx2 * scale + px, fy2 * scale + py))
+                cv2.line(record[player, frame], (fx1, height - fy1), (fx2, height - fy2), (170, 0, 0, 0),
+                         thickness=3, lineType=cv2.LINE_AA)
+
+                dx, dy = direction
+                dx *= scale * 0.1
+                dy *= scale * 0.1
+                px, py = width // 2, height // 2
+                x1, y1, x2, y2 = map(int, (px, py, px + dx, py + dy))
+                cv2.line(record[player, frame], (x1, height - y1), (x2, height - y2), (100, 149, 237, 0),
+                         thickness=4, lineType=cv2.LINE_AA)
+
+        record = np.concatenate(list(record), axis=-2)
+
+        basepath, _ = os.path.split(filename)
+        os.makedirs(basepath, exist_ok=True)
+        clip = mpy.ImageSequenceClip(list(record), fps=30)
+        clip.write_videofile(filename + '.mp4', audio=False, verbose=False)
 
     def play(self):
         """
