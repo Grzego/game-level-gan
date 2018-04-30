@@ -22,14 +22,14 @@ def main():
     track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
-    batch_size = 1
-    num_segments = 10
-    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=1., angle=45.)])#,
-                                   #RaceCar(max_speed=80., acceleration=1., angle=60.)])
+    batch_size = 64
+    num_segments = 16
+    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=1., angle=45.),
+                                   RaceCar(max_speed=80., acceleration=1., angle=60.)])
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
-    # discriminator = RaceWinnerDiscriminator(track_generator.track_shape, num_players, lr=1e-5)
+    discriminator = RaceWinnerDiscriminator(track_generator.track_shape, num_players, lr=1e-5)
 
     # create agents with LSTM policy network
     # TODO: implement PPO agents
@@ -54,7 +54,7 @@ def main():
         print('Starting episode {}'.format(e))
 
         # generate boards
-        boards = track_generator.generate(track_length=64, num_samples=batch_size)
+        boards = track_generator.generate(track_length=num_segments, num_samples=batch_size)
         # boards = torch.rand((batch_size, num_segments, 2), device=device)
         # boards[:, :, 0] *= 2.
         # boards[:, :, 0] -= 1.

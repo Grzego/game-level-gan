@@ -7,21 +7,21 @@ from utils import device
 
 
 class DiscriminatorNetwork(nn.Module):
-    def __init__(self, track_length, num_players):
+    def __init__(self, num_players):
         super().__init__()
-        self.features = nn.Sequential(
-        )
 
+        self.input_size = 2
+        self.hidden_size = 512
+        self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=2, batch_first=True)
         self.prediction = nn.Sequential(
+            nn.Linear(self.hidden_size, num_players),
+            nn.Softmax()
         )
 
-    def feature_size(self):
-        # return int(np.prod(self.features(Variable(torch.ones(1, self.depth, *self.size))).shape))
-        pass
-
-    def forward(self, inputs):
-        h = self.features(inputs)
-        h = h.view(inputs.size(0), -1)
+    def forward(self, tracks):
+        # tracks = [batch_size, num_segments, 2]
+        h, _ = self.features(tracks)
+        h = F.elu(h[:, -1, :])
         return self.prediction(h)
 
 
@@ -35,8 +35,8 @@ class RaceWinnerDiscriminator(object):
 
     def loss(self, tracks, winners):
         prob_winners = self.network(tracks)
-        _, pred_winners = torch.max(prob_winners, dim=-1)
-        return F.cross_entropy(prob_winners, winners), winners.long().eq(pred_winners.long()).float().mean()
+        pred_winners = torch.argmax(prob_winners, dim=-1)
+        return F.cross_entropy(prob_winners, winners), winners.eq(pred_winners).float().mean()
 
     def train(self, tracks, winners):
         loss, acc = self.loss(tracks, winners)
