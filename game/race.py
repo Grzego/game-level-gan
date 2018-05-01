@@ -28,6 +28,7 @@ class Race(MultiEnvironment):
         self.cars_acceleration = torch.tensor([car.acceleration for car in cars], dtype=torch.float32, device=device)
         self.cars_angle = torch.tensor([car.angle for car in cars], dtype=torch.float32, device=device)
         self.num_tracks = None
+        self.segments = None
         self.positions = None
         self.directions = None
         self.speeds = None
@@ -106,6 +107,8 @@ class Race(MultiEnvironment):
         segments[:, 0, :] = 0.
         right_vecs = segments + right_vecs
         left_vecs = segments + left_vecs
+
+        self.segments = segments
 
         right_bounds = torch.cat((right_vecs[:, :-1, :], right_vecs[:, 1:, :]), dim=-1)
         left_bounds = torch.cat((left_vecs[:, :-1, :], left_vecs[:, 1:, :]), dim=-1)
@@ -394,7 +397,27 @@ class Race(MultiEnvironment):
         clip.write_videofile(filename + '.mp4', audio=False, verbose=False)
 
     def tracks_images(self, top_n=3):
-        pass
+        import cv2
+        import numpy as np
+
+        size = 256
+        imgs = np.zeros((top_n, size, size, 3), dtype=np.uint8)
+
+        for i in range(top_n):
+            mins, _ = torch.min(self.segments[i, :, :], dim=0)
+            maxs, _ = torch.max(self.segments[i, :, :], dim=0)
+
+            span = maxs - mins
+            border = 0.05 * span
+
+            for p1, p2 in zip(self.segments[i, :-1, :], self.segments[i, 1:, :]):
+                p1 = (size * (p1 - mins + border) / (span + 2. * border)).int()
+                p2 = (size * (p2 - mins + border) / (span + 2. * border)).int()
+
+                cv2.line(imgs[i], tuple(p1.tolist()), tuple(p2.tolist()), (230, 230, 230, 0),
+                         thickness=4, lineType=cv2.LINE_AA)
+
+        return torch.from_numpy(imgs).permute(0, 3, 1, 2)
 
     def play(self):
         """

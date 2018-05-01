@@ -78,7 +78,7 @@ def main():
             summary_writer.add_scalar('summary/agent_{}/loss'.format(i), aloss, global_step=e)
             summary_writer.add_scalar('summary/agent_{}/mean_val'.format(i), mean_val, global_step=e)
 
-        if e % 1000 == 0:
+        if e % 200 == 0:
             # save models
             for i, a in enumerate(agents):
                 torch.save(a.network.state_dict(), os.path.join(run_path, 'agent_{}_{}.pt'.format(i, e)))
@@ -95,13 +95,13 @@ def main():
 
         summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
 
-        if e % 100 == 0:
+        if e % 10 == 0:
             game.record_episode(os.path.join(run_path, 'videos', 'episode_{}'.format(e)))
             # save boards as images in tensorboard
             for i, img in enumerate(game.tracks_images(top_n=3)):
                 summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)
 
-        if e % 1000 == 0:
+        if e % 200 == 0:
             torch.save(track_generator.generator.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
             torch.save(discriminator.network.state_dict(), os.path.join(run_path, 'discriminator_{}.pt'.format(e)))
 
