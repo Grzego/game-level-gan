@@ -127,7 +127,7 @@ class Race(MultiEnvironment):
         self.scores.fill_(float('inf'))  # time when finished
         self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=device)
 
-        return self.step(torch.zeros((num_boards, self.num_players), dtype=torch.int64, device=device))[0]
+        return self.step(torch.zeros((self.num_players, num_boards), dtype=torch.int64, device=device))[0]
 
     @staticmethod
     def _segment_collisions(segments, tests, special=False):
@@ -236,8 +236,10 @@ class Race(MultiEnvironment):
 
     def step(self, actions):
         """
-        actions - torch.Tensor with size [num_boards, num_players]
+        actions - torch.Tensor with size [num_players, num_boards]
         """
+        actions = actions.t().contiguous()
+
         self.steps += 1
         num_boards, num_seg = actions.size(0), self.bounds.size(2)
 
@@ -278,10 +280,11 @@ class Race(MultiEnvironment):
             is_done = torch.max(finish.view(update_mask.size(0), -1), dim=-1)[0]
             rewards[update_mask] += is_done.float() - is_dead.float()
             self.alive.view(-1)[update_mask] &= ~is_done
-            self.finishes[update_mask] += is_done
+            self.finishes.view(-1)[update_mask] += is_done
 
             dead_or_done = (is_dead | is_done).float()
-            self.scores[update_mask] = self.scores[update_mask] * (1. - dead_or_done) + dead_or_done * self.steps
+            self.scores.view(-1)[update_mask] = self.scores.view(-1)[update_mask] * (1. - dead_or_done) \
+                                                + dead_or_done * self.steps
             # stop finished players
             new_speed[~self.alive] = 0.
 
@@ -323,11 +326,16 @@ class Race(MultiEnvironment):
         winner = torch.zeros((self.finishes.size(0),), dtype=torch.long, device=device)
 
         anyone_finished = self.finishes.sum(-1) > 0
-        finished = self.scores[anyone_finished].clone()
-        finished[~self.finishes[anyone_finished]] = float('inf')
+        if torch.sum(anyone_finished) > 0:
+            finished = self.scores[anyone_finished].clone()
+            finished[~self.finishes[anyone_finished]] = float('inf')
 
-        winner[anyone_finished] = torch.argmin(finished, dim=-1)
-        winner[~anyone_finished] = torch.argmax(self.scores[~anyone_finished], dim=-1)
+            winner[anyone_finished] = torch.argmin(finished, dim=-1)
+            if torch.sum(~anyone_finished) > 0:
+                winner[~anyone_finished] = torch.argmax(self.scores[~anyone_finished], dim=-1)
+        else:
+            winner = torch.argmax(self.scores, dim=-1)
+
         return winner
 
     def record_episode(self, filename: str):

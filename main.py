@@ -29,7 +29,7 @@ def main():
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
-    discriminator = RaceWinnerDiscriminator(track_generator.track_shape, num_players, lr=1e-5)
+    discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5)
 
     # create agents with LSTM policy network
     # TODO: implement PPO agents
@@ -70,9 +70,6 @@ def main():
                 a.observe(r)
             for i, r in enumerate(rewards):
                 total_rewards[:, i] += r
-            if e % 100 == 0:
-                print(' '.join(game.action_name(a) for a in actions[0]),
-                      ('[ ' + '{:6.3f} ' * num_players + ']').format(*[r[0] for r in rewards]))
         print('Finished with rewards:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]))
 
         # update agent policies
@@ -99,6 +96,7 @@ def main():
         summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
 
         if e % 100 == 0:
+            game.record_episode(os.path.join(run_path, 'videos', 'episode_{}'.format(e)))
             # save boards as images in tensorboard
             for i, img in enumerate(game.tracks_images(top_n=3)):
                 summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)

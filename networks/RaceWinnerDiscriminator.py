@@ -15,7 +15,7 @@ class DiscriminatorNetwork(nn.Module):
         self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=2, batch_first=True)
         self.prediction = nn.Sequential(
             nn.Linear(self.hidden_size, num_players),
-            nn.Softmax()
+            nn.Softmax(dim=-1)
         )
 
     def forward(self, tracks):
@@ -26,8 +26,8 @@ class DiscriminatorNetwork(nn.Module):
 
 
 class RaceWinnerDiscriminator(object):
-    def __init__(self, track_length, num_players, lr=1e-4):
-        self.network = DiscriminatorNetwork(track_length, num_players).to(device)
+    def __init__(self, num_players, lr=1e-4):
+        self.network = DiscriminatorNetwork(num_players).to(device)
         self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
 
     def forward(self, tracks):

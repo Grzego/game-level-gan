@@ -5,7 +5,7 @@ from torch import optim
 from torch.nn import functional as F
 
 from .agent import Agent
-from utils import device, gumbel_noise
+from utils import device, gumbel_noise, one_hot
 
 
 class A2CAgent(Agent):
@@ -65,7 +65,7 @@ class A2CAgent(Agent):
         # MSE on rewards and values
         loss = 0.5 * torch.mean(torch.pow(advantage, 2.))
         # CE on policy and actions
-        loss -= torch.mean(advantage.detach() * torch.log(torch.sum(actions * policy, dim=1) + 1e-8))
+        loss -= torch.mean(advantage.detach() * torch.log(torch.sum(actions.float() * policy, dim=1) + 1e-8))
         # entropy pentalty
         loss += self.beta * torch.mean(torch.sum(policy * torch.log(policy + 1e-8), dim=-1))
         loss.backward()

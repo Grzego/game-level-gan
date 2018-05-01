@@ -30,21 +30,21 @@ class GeneratorNetwork(nn.Module):
 
     def forward(self, noise, num_segments):
         # noise = [batch_size, latent_size]
-        idea = self.unpack_idea(noise)
-        coords = noise.new_zeros((1, noise.size(0), self.output_size))
+        idea = self.unpack_idea(noise).unsqueeze(0)
+        coords = noise.new_zeros((noise.size(0), self.output_size))
 
         level = []
         idea = (idea, idea)
         for _ in range(num_segments):
-            coords, idea = self.make_level(coords, idea)
+            coords, idea = self.make_level(coords.unsqueeze(0), idea)
+
+            flatten = coords.squeeze(0)
+            widths = self.level_widths(flatten)  # [batch_size, 1]
+            angles = self.level_angles(flatten)  # [batch_size, 1]
+            coords = torch.cat((angles, widths), dim=-1)
             level.append(coords)
-        level = torch.cat(level, dim=0).permutate(1, 0, 2)  # [batch_size, num_segments, internal_size]
 
-        flatten = level.view(-1, self.internal_size)
-        widths = self.level_widths(flatten)  # [batch_size * num_segments, 1]
-        angles = self.level_angles(flatten)  # [batch_size * num_segments, 1]
-
-        return torch.cat((angles, widths), dim=-1).view(-1, num_segments, self.output_size)
+        return torch.stack(level, dim=1)  # [batch_size, num_segments, internal_size]
 
 
 class RaceTrackGenerator(object):
@@ -54,7 +54,7 @@ class RaceTrackGenerator(object):
 
     def __init__(self, latent_size, lr=1e-4):
         self.latent_size = latent_size
-        self.generator = GeneratorNetwork(latent_size)
+        self.generator = GeneratorNetwork(latent_size).to(device)
         self.optimizer = optim.Adam(self.generator.parameters(), lr=lr)
 
     def generate(self, track_length, num_samples=1):
@@ -69,7 +69,7 @@ class RaceTrackGenerator(object):
         """
         Generator wants all probabilities to be equal.
         """
-        prob = torch.ones_like(pred_winners) / self.num_players
+        prob = torch.ones_like(pred_winners) / pred_winners.size(1)
         loss = -torch.mean(prob * torch.log(pred_winners + 1e-8) + (1. - prob) * torch.log(1. - pred_winners + 1e-8))
         loss.backward()
 
