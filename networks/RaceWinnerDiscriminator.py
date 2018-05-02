@@ -14,6 +14,7 @@ class DiscriminatorNetwork(nn.Module):
         self.hidden_size = 512
         self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=2, batch_first=True)
         self.prediction = nn.Sequential(
+            nn.GroupNorm(self.hidden_size // 64, self.hidden_size),
             nn.Linear(self.hidden_size, num_players),
             nn.Softmax(dim=-1)
         )

@@ -4,12 +4,10 @@ import numpy as np
 from tensorboardX import SummaryWriter
 
 from game import Race, RaceCar
-from agents import A2CAgent
+from agents import PPOAgent
 from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest
-from utils.pytorch_utils import device
-
 
 resume = None  # os.path.join('experiments', 'run-6')
 
@@ -22,20 +20,21 @@ def main():
     track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
-    batch_size = 64
-    num_segments = 16
-    game = Race(timeout=30., cars=[RaceCar(max_speed=100., acceleration=1., angle=45.),
-                                   RaceCar(max_speed=80., acceleration=1., angle=60.)])
+    batch_size = 32
+    num_segments = 1
+    cars = [RaceCar(max_speed=100., acceleration=1., angle=45.),
+            RaceCar(max_speed=80., acceleration=1., angle=60.)]
+    game = Race(timeout=5., framerate=1./20., cars=cars)
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
-    discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5)
+    discriminator = RaceWinnerDiscriminator(num_players, lr=2e-5)
 
     # create agents with LSTM policy network
     # TODO: implement PPO agents
-    agents = [A2CAgent(game.actions,
+    agents = [PPOAgent(game.actions,
                        LSTMPolicy(game.state_shape()[0], game.actions),
-                       lr=1e-5, discount=0.9, beta=0.01)
+                       lr=1e-4, discount=0.99, beta=0.01)
               for _ in range(game.num_players)]
 
     run_path = resume or find_next_run_dir('experiments')
@@ -49,6 +48,7 @@ def main():
             a.network.load_state_dict(torch.load(path))
             epoch = int(path.split('_')[-1].split('.')[0])
 
+    finish_mean = 0.
     for e in range(epoch, 10000000):
         print()
         print('Starting episode {}'.format(e))
@@ -64,13 +64,24 @@ def main():
         states = game.reset(boards.detach())
 
         while not game.finished():
-            actions = torch.tensor([a.act(s) for a, s in zip(agents, states)], device=device)
+            actions = torch.stack([a.act(s) for a, s in zip(agents, states)], dim=0)
             states, rewards = game.step(actions)
             for a, r in zip(agents, rewards):
                 a.observe(r)
             for i, r in enumerate(rewards):
                 total_rewards[:, i] += r
-        print('Finished with rewards:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]))
+        finish_mean = 0.3 * finish_mean + 0.7 * game.finishes.float().mean().item()
+        print('Finished with rewards:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]),
+              '; finish mean: {:7.5f}'.format(finish_mean))
+
+        if finish_mean > 0.6:
+            # increase number of segments and reset mean
+            num_segments += 1
+            finish_mean = 0.
+            # change timeout so that players have time to finish race
+            # TODO: use average race time here
+            game.change_timeout(3. + num_segments / 1.5)
+            print('{} -- Increased number of segments to {}'.format(e, num_segments))
 
         # update agent policies
         for i, a in enumerate(agents):
@@ -78,13 +89,18 @@ def main():
             summary_writer.add_scalar('summary/agent_{}/loss'.format(i), aloss, global_step=e)
             summary_writer.add_scalar('summary/agent_{}/mean_val'.format(i), mean_val, global_step=e)
 
-        if e % 200 == 0:
+        if e % 1000 == 0:
             # save models
             for i, a in enumerate(agents):
                 torch.save(a.network.state_dict(), os.path.join(run_path, 'agent_{}_{}.pt'.format(i, e)))
 
         # discriminator calculate loss and perform backward pass
-        dloss, dacc = discriminator.train(boards.detach(), game.winners())
+        winners = game.winners()
+        for p in range(num_players):
+            summary_writer.add_scalar('summary/win_rates/player_{}'.format(p),
+                                      (winners == p).float().mean(), global_step=e)
+
+        dloss, dacc = discriminator.train(boards.detach(), winners)
 
         summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=e)
         summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=e)
@@ -95,13 +111,13 @@ def main():
 
         summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
 
-        if e % 10 == 0:
+        if e % 20 == 0:
             game.record_episode(os.path.join(run_path, 'videos', 'episode_{}'.format(e)))
             # save boards as images in tensorboard
             for i, img in enumerate(game.tracks_images(top_n=3)):
                 summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)
 
-        if e % 200 == 0:
+        if e % 1000 == 0:
             torch.save(track_generator.generator.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
             torch.save(discriminator.network.state_dict(), os.path.join(run_path, 'discriminator_{}.pt'.format(e)))
 

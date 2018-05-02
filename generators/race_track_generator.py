@@ -20,10 +20,12 @@ class GeneratorNetwork(nn.Module):
         )
         self.make_level = nn.LSTM(self.output_size, self.internal_size)
         self.level_widths = nn.Sequential(
+            nn.GroupNorm(self.internal_size // 64, self.internal_size),
             nn.Linear(self.internal_size, 1),
             nn.Sigmoid()
         )
         self.level_angles = nn.Sequential(
+            nn.GroupNorm(self.internal_size // 64, self.internal_size),
             nn.Linear(self.internal_size, 1),
             nn.Tanh()
         )
@@ -39,8 +41,8 @@ class GeneratorNetwork(nn.Module):
             coords, idea = self.make_level(coords.unsqueeze(0), idea)
 
             flatten = coords.squeeze(0)
-            widths = self.level_widths(flatten)  # [batch_size, 1]
             angles = self.level_angles(flatten)  # [batch_size, 1]
+            widths = self.level_widths(flatten)  # [batch_size, 1]
             coords = torch.cat((angles, widths), dim=-1)
             level.append(coords)
 

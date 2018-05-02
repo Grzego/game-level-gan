@@ -32,11 +32,10 @@ class ConvLSTMPolicy(nn.Module):
         h = F.elu(self.conv1(inputs))
         h = F.elu(self.conv2(h))
         h = h.view(1, -1, self.lstm.input_size)
-        _, self.state = self.lstm(h, self.state)
-        h, _ = self.state
-        policy = self.policy(h)
+        out, self.state = self.lstm(h, self.state)
+        policy = self.policy(out)
         if not self.gumbel:
             policy = F.softmax(policy, dim=-1)
-        value = self.value(h)
+        value = self.value(out)
         return policy, value
 
