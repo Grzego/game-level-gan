@@ -119,7 +119,7 @@ class Race(MultiEnvironment):
         left_bounds = torch.cat((left_vecs[:, :-1, :], left_vecs[:, 1:, :]), dim=-1)
         start_bounds = torch.cat((left_vecs[:, :1, :], right_vecs[:, :1, :]), dim=-1)
         reward_bound = torch.cat((left_vecs[:, -1:, :], right_vecs[:, -1:, :]), dim=-1)
-        reward_bound = reward_bound.repeat(1, self.num_players, 1, 1)
+        reward_bound = reward_bound.unsqueeze(1).repeat(1, self.num_players, 1, 1)
         self.reward_bound = reward_bound.view(-1, *reward_bound.shape[-2:])
         bounds = torch.cat((right_bounds, left_bounds, start_bounds), dim=1).unsqueeze(1)
         bounds = bounds.repeat(1, self.num_players, 1, 1)
@@ -433,23 +433,32 @@ class Race(MultiEnvironment):
         import numpy as np
 
         size = 256
-        imgs = np.zeros((top_n, size, size, 3), dtype=np.uint8)
+        imgs = 255 * np.ones((top_n, size, size, 3), dtype=np.uint8)
 
         for i in range(top_n):
-            mins, _ = torch.min(self.segments[i, :, :], dim=0)
-            maxs, _ = torch.max(self.segments[i, :, :], dim=0)
+            mins, _ = torch.min(self.bounds[i, :, :].view(-1, 2), dim=0)
+            maxs, _ = torch.max(self.bounds[i, :, :].view(-1, 2), dim=0)
+            longer = torch.max(maxs - mins).item()
+            shift = 0.5 * (1. - (maxs - mins) / longer)
+            minx, miny = mins.tolist()
+            shiftx, shifty = shift.tolist()
 
-            span = maxs - mins
-            border = 0.05 * span
+            def _move_x(x):
+                return int(0.05 * size + 0.9 * size * ((x - minx) / longer + shiftx))
 
-            for p1, p2 in zip(self.segments[i, :-1, :], self.segments[i, 1:, :]):
-                p1 = (size * (p1 - mins + border) / (span + 2. * border)).int()
-                p2 = (size * (p2 - mins + border) / (span + 2. * border)).int()
+            def _move_y(y):
+                return size - int(0.05 * size + 0.9 * size * ((y - miny) / longer + shifty))
 
-                cv2.line(imgs[i], tuple(p1.tolist()), tuple(p2.tolist()), (230, 230, 230, 0),
-                         thickness=4, lineType=cv2.LINE_AA)
+            # draw every segment of first track
+            for x1, y1, x2, y2 in self.bounds[i * self.num_players, :, :]:
+                cv2.line(imgs[i], (_move_x(x1), _move_y(y1)), (_move_x(x2), _move_y(y2)), (0, 0, 0, 0),
+                         thickness=2, lineType=cv2.LINE_AA)
 
-        return torch.from_numpy(imgs).permute(0, 3, 1, 2)
+            fx1, fy1, fx2, fy2 = self.reward_bound[i * self.num_players, 0, :]
+            cv2.line(imgs[i], (_move_x(fx1), _move_y(fy1)), (_move_x(fx2), _move_y(fy2)), (170, 0, 0, 0),
+                     thickness=3, lineType=cv2.LINE_AA)
+
+        return imgs
 
     def play(self):
         """

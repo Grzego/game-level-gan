@@ -70,7 +70,7 @@ def main():
                 a.observe(r)
             for i, r in enumerate(rewards):
                 total_rewards[:, i] += r
-        finish_mean = 0.3 * finish_mean + 0.7 * game.finishes.float().mean().item()
+        finish_mean = 0.8 * finish_mean + 0.2 * game.finishes.float().mean().item()
         print('Finished with rewards:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]),
               '; finish mean: {:7.5f}'.format(finish_mean))
 
@@ -106,10 +106,11 @@ def main():
         summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=e)
 
         # compute gradient for generator
-        pred_winners = discriminator.forward(boards)
-        gloss = track_generator.train(pred_winners)
+        if num_segments >= 4:
+            pred_winners = discriminator.forward(boards)
+            gloss = track_generator.train(pred_winners)
 
-        summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
+            summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
 
         if e % 20 == 0:
             game.record_episode(os.path.join(run_path, 'videos', 'episode_{}'.format(e)))
@@ -117,7 +118,7 @@ def main():
             for i, img in enumerate(game.tracks_images(top_n=3)):
                 summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)
 
-        if e % 1000 == 0:
+        if e % 1000 == 0 and num_segments >= 4:
             torch.save(track_generator.generator.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
             torch.save(discriminator.network.state_dict(), os.path.join(run_path, 'discriminator_{}.pt'.format(e)))
 
