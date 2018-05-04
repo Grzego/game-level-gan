@@ -11,7 +11,7 @@ class DiscriminatorNetwork(nn.Module):
         super().__init__()
 
         self.input_size = 2
-        self.hidden_size = 512
+        self.hidden_size = 256
         self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=2, batch_first=True)
         self.prediction = nn.Sequential(
             nn.GroupNorm(self.hidden_size // 64, self.hidden_size),
@@ -28,16 +28,17 @@ class DiscriminatorNetwork(nn.Module):
 
 class RaceWinnerDiscriminator(object):
     def __init__(self, num_players, lr=1e-4):
-        self.network = DiscriminatorNetwork(num_players).to(device)
+        self.network = DiscriminatorNetwork(num_players + 1).to(device)  # +1 for invalid option
         self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
 
     def forward(self, tracks):
         return self.network(tracks)
 
     def loss(self, tracks, winners):
+        wins = winners + 1
         prob_winners = self.network(tracks)
         pred_winners = torch.argmax(prob_winners, dim=-1)
-        return F.cross_entropy(prob_winners, winners), winners.eq(pred_winners).float().mean()
+        return F.cross_entropy(prob_winners, wins), wins.eq(pred_winners).float().mean()
 
     def train(self, tracks, winners):
         loss, acc = self.loss(tracks, winners)

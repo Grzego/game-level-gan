@@ -15,7 +15,7 @@ resume = None  # os.path.join('experiments', 'run-6')
 def main():
     # board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
 
-    latent, size, num_players = 128, (5, 5), 2
+    latent, num_players = 16, 2
     # TODO: add race track generator
     track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
@@ -31,7 +31,6 @@ def main():
     discriminator = RaceWinnerDiscriminator(num_players, lr=2e-5)
 
     # create agents with LSTM policy network
-    # TODO: implement PPO agents
     agents = [PPOAgent(game.actions,
                        LSTMPolicy(game.state_shape()[0], game.actions),
                        lr=1e-4, discount=0.99, beta=0.01)
@@ -61,20 +60,20 @@ def main():
 
         # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))
-        states = game.reset(boards.detach())
+        states, any_valid = game.reset(boards.detach())
 
-        while not game.finished():
+        while any_valid and not game.finished():
             actions = torch.stack([a.act(s) for a, s in zip(agents, states)], dim=0)
             states, rewards = game.step(actions)
             for a, r in zip(agents, rewards):
                 a.observe(r)
             for i, r in enumerate(rewards):
                 total_rewards[:, i] += r
-        finish_mean = 0.8 * finish_mean + 0.2 * game.finishes.float().mean().item()
+        finish_mean = 0.9 * finish_mean + 0.1 * game.finishes.float().mean().item()
         print('Finished with rewards:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]),
               '; finish mean: {:7.5f}'.format(finish_mean))
 
-        if finish_mean > 0.6:
+        if finish_mean > 0.9:
             # increase number of segments and reset mean
             num_segments += 1
             finish_mean = 0.
@@ -84,7 +83,7 @@ def main():
             print('{} -- Increased number of segments to {}'.format(e, num_segments))
 
         # update agent policies
-        for i, a in enumerate(agents):
+        for i, a in game.iterate_valid(agents):
             aloss, mean_val = a.learn()
             summary_writer.add_scalar('summary/agent_{}/loss'.format(i), aloss, global_step=e)
             summary_writer.add_scalar('summary/agent_{}/mean_val'.format(i), mean_val, global_step=e)
@@ -99,6 +98,7 @@ def main():
         for p in range(num_players):
             summary_writer.add_scalar('summary/win_rates/player_{}'.format(p),
                                       (winners == p).float().mean(), global_step=e)
+        summary_writer.add_scalar('summary/invalid', (winners == -1).float().mean(), global_step=e)
 
         dloss, dacc = discriminator.train(boards.detach(), winners)
 

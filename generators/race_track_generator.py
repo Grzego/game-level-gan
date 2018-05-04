@@ -18,7 +18,7 @@ class GeneratorNetwork(nn.Module):
             nn.Linear(latent_size, self.internal_size),
             nn.ELU()
         )
-        self.make_level = nn.LSTM(self.output_size, self.internal_size)
+        self.make_level = nn.LSTM(self.output_size, self.internal_size, num_layers=2)
         self.level_widths = nn.Sequential(
             nn.GroupNorm(self.internal_size // 64, self.internal_size),
             nn.Linear(self.internal_size, 1),
@@ -32,8 +32,10 @@ class GeneratorNetwork(nn.Module):
 
     def forward(self, noise, num_segments):
         # noise = [batch_size, latent_size]
-        idea = self.unpack_idea(noise).unsqueeze(0)
+        idea = self.unpack_idea(noise)
         coords = noise.new_zeros((noise.size(0), self.output_size))
+
+        idea = torch.stack((idea, torch.zeros_like(idea)), dim=0)
 
         level = []
         idea = (idea, idea)
@@ -69,10 +71,17 @@ class RaceTrackGenerator(object):
 
     def train(self, pred_winners):
         """
-        Generator wants all probabilities to be equal.
+        Generator wants all players to have equal chance of winning.
+        Last dim means whether board was invalid, this probability should be 0.
         """
-        prob = torch.ones_like(pred_winners) / pred_winners.size(1)
-        loss = -torch.mean(prob * torch.log(pred_winners + 1e-8) + (1. - prob) * torch.log(1. - pred_winners + 1e-8))
+        reverse_mask = torch.ones_like(pred_winners)
+        reverse_mask[:, -1].neg_()
+
+        shift_mask = torch.zeros_like(pred_winners)
+        shift_mask[:, -1] = 1.
+
+        prob_wins = pred_winners * reverse_mask + shift_mask
+        loss = -torch.mean(torch.log(prob_wins + 1e-8))
         loss.backward()
 
         self.optimizer.step()
