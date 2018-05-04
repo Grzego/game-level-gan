@@ -75,10 +75,10 @@ class RaceTrackGenerator(object):
         Last dim means whether board was invalid, this probability should be 0.
         """
         reverse_mask = torch.ones_like(pred_winners)
-        reverse_mask[:, -1].neg_()
+        reverse_mask[:, 0].neg_()
 
         shift_mask = torch.zeros_like(pred_winners)
-        shift_mask[:, -1] = 1.
+        shift_mask[:, 0] = 1.
 
         prob_wins = pred_winners * reverse_mask + shift_mask
         loss = -torch.mean(torch.log(prob_wins + 1e-8))

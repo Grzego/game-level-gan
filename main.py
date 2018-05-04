@@ -24,7 +24,7 @@ def main():
     num_segments = 1
     cars = [RaceCar(max_speed=100., acceleration=1., angle=45.),
             RaceCar(max_speed=80., acceleration=1., angle=60.)]
-    game = Race(timeout=5., framerate=1./20., cars=cars)
+    game = Race(timeout=3., framerate=1./20., cars=cars)
 
     # create discriminator for predicting winners
     # TODO: add race track winner discriminator
