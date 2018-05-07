@@ -9,7 +9,7 @@ from game import Race, RaceCar
 from agents import PPOAgent
 from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
-from utils import find_next_run_dir, find_latest
+from utils import find_next_run_dir, find_latest, device
 
 resume = None  # os.path.join('experiments', 'run-6')
 
@@ -47,18 +47,19 @@ def main():
             a.network.load_state_dict(torch.load(path))
             epoch = int(path.split('_')[-1].split('.')[0])
 
-    finishes = recordclass('FinishMeans', 'generated random')(0., 0.)
+    agent_training = True
+    finish_mean = 0.
     for e in range(epoch, 10000000):
         print()
         print('Starting episode {}'.format(e))
 
         # generate boards
-        random_split = 8 if num_segments >= 12 else batch_size // 2
-        generated_boards = track_generator.generate(track_length=num_segments, num_samples=batch_size - random_split)
-        random_boards = generated_boards.new_empty((random_split, num_segments, 2))
-        random_boards[:, :, 0].uniform_(-1., 1.)
-        random_boards[:, :, 1].uniform_(0., 1.)
-        boards = torch.cat((generated_boards, random_boards))
+        if agent_training:
+            boards = torch.empty((batch_size, num_segments, 2), dtype=torch.float, device=device)
+            boards[:, :, 0].uniform_(-1., 1.)
+            boards[:, :, 1].uniform_(0., 1.)
+        else:
+            boards = track_generator.generate(track_length=num_segments, num_samples=batch_size)
 
         # run agents to find who wins
         total_rewards = np.zeros((batch_size, num_players))
@@ -76,53 +77,27 @@ def main():
         print('Finished with rewards:', ('[ ' + '{:6.3f} ' * num_players + ']').format(*total_rewards[0]), end='')
 
         # TODO: large random tracks may be invalid making it impossible to add more segments
-        finish_gen = game.finishes[: -random_split].float().mean().item()
-        finish_rand = game.finishes[-random_split:].float().mean().item()
-        finishes.generated = 0.9 * finishes.generated + 0.1 * finish_gen
-        finishes.random = 0.9 * finishes.random + 0.1 * finish_rand
-        print('; generated mean: {:7.5f}; random mean: {:7.5f}'.format(*finishes))
+        cur_mean = game.finishes.float().mean().item()
+        finish_mean = 0.9 * finish_mean + 0.1 * cur_mean
+        print('; random finish mean: {:7.5f}'.format(cur_mean))
 
-        summary_writer.add_scalar('summary/finishes/generated', finish_gen, global_step=e)
-        summary_writer.add_scalar('summary/finishes/random', finish_rand, global_step=e)
+        summary_writer.add_scalar('summary/finishes', cur_mean, global_step=e)
 
-        if finishes.generated > 0.8 and finishes.random > 0.8 and num_segments < 64:
+        if finish_mean > 0.8 and num_segments < 16:
             # increase number of segments and reset mean
             num_segments += 1
-            finishes.generated, finishes.random = 0., 0.
+            finish_mean = 0.
             # change timeout so that players have time to finish race
             # TODO: use average race time here
             game.change_timeout(3. + num_segments / 1.5)
             print('{} -- Increased number of segments to {}'.format(e, num_segments))
-
-        # update agent policies
-        for i, a in game.iterate_valid(agents):
-            aloss, mean_val = a.learn()
-            summary_writer.add_scalar('summary/agent_{}/loss'.format(i), aloss, global_step=e)
-            summary_writer.add_scalar('summary/agent_{}/mean_val'.format(i), mean_val, global_step=e)
-
-        if e % 1000 == 0:
-            # save models
+        elif finish_mean > 0.9 and num_segments == 16:
+            agent_training = False
             for i, a in enumerate(agents):
                 torch.save(a.network.state_dict(), os.path.join(run_path, 'agent_{}_{}.pt'.format(i, e)))
-
-        # discriminator calculate loss and perform backward pass
-        winners = game.winners()
-        for p in range(num_players):
-            summary_writer.add_scalar('summary/win_rates/player_{}'.format(p),
-                                      (winners == p).float().mean(), global_step=e)
-        summary_writer.add_scalar('summary/invalid', (winners == -1).float().mean(), global_step=e)
-
-        dloss, dacc = discriminator.train(boards.detach(), winners)
-
-        summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=e)
-        summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=e)
-
-        # compute gradient for generator
-        # if num_segments >= 8:
-        pred_winners = discriminator.forward(generated_boards)
-        gloss = track_generator.train(pred_winners)
-
-        summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
+            print('-' * 15)
+            print('Finished training agents.')
+            print('-' * 15)
 
         if e % 20 == 0:
             game.record_episode(os.path.join(run_path, 'videos', 'episode_{}'.format(e)))
@@ -130,9 +105,40 @@ def main():
             for i, img in enumerate(game.tracks_images(top_n=batch_size)):
                 summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)
 
-        if e % 1000 == 0:  # and num_segments >= 8:
-            torch.save(track_generator.generator.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
-            torch.save(discriminator.network.state_dict(), os.path.join(run_path, 'discriminator_{}.pt'.format(e)))
+        if agent_training:
+            # update agent policies
+            for i, a in game.iterate_valid(agents):
+                aloss, mean_val = a.learn()
+                summary_writer.add_scalar('summary/agent_{}/loss'.format(i), aloss, global_step=e)
+                summary_writer.add_scalar('summary/agent_{}/mean_val'.format(i), mean_val, global_step=e)
+
+            # if e % 1000 == 0:
+                # save models
+                # for i, a in enumerate(agents):
+                #     torch.save(a.network.state_dict(), os.path.join(run_path, 'agent_{}_{}.pt'.format(i, e)))
+
+        if not agent_training:
+            # discriminator calculate loss and perform backward pass
+            winners = game.winners()
+            for p in range(num_players):
+                summary_writer.add_scalar('summary/win_rates/player_{}'.format(p),
+                                          (winners == p).float().mean(), global_step=e)
+            summary_writer.add_scalar('summary/invalid', (winners == -1).float().mean(), global_step=e)
+
+            dloss, dacc = discriminator.train(boards.detach(), winners)
+
+            summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=e)
+            summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=e)
+
+            # compute gradient for generator
+            pred_winners = discriminator.forward(boards)
+            gloss = track_generator.train(pred_winners)
+
+            summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
+
+            if e % 1000 == 0:  # and num_segments >= 8:
+                torch.save(track_generator.generator.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
+                torch.save(discriminator.network.state_dict(), os.path.join(run_path, 'discriminator_{}.pt'.format(e)))
 
 
 if __name__ == '__main__':
