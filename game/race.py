@@ -50,26 +50,30 @@ class Race(MultiEnvironment):
                                           1.,  # forward-left
                                           -1.,  # backward-left
                                           ], device=device)
-        self.action_dirs = torch.tensor([0.,  # noop
-                                         0.,  # forward
-                                         0.,  # backward
-                                         1.,  # right
-                                         1.,  # forward-right
-                                         1.,  # backward-right
+        self.action_dirs = torch.tensor([0.,   # noop
+                                         0.,   # forward
+                                         0.,   # backward
+                                         1.,   # right
+                                         1.,   # forward-right
+                                         -1.,  # backward-right
                                          -1.,  # left
                                          -1.,  # forward-left
-                                         -1.,  # backward-left
+                                         1.,   # backward-left
                                          ], device=device)
         self.observation_size = observation_size
         self.max_distance = max_distance
         self.negative_reward = -0.001
         self.history = []  # keeps posision and direction for players on first board
+        self.record_id = 0
 
     def state_shape(self):
         return self.observation_size + 1,  # + 1 for speed
 
     def players_layer_shape(self):
         pass
+
+    def record(self, board):
+        self.record_id = board
 
     def change_timeout(self, timeout):
         self.timeout = timeout
@@ -272,6 +276,8 @@ class Race(MultiEnvironment):
         """
         actions - torch.Tensor with size [num_players, num_boards]
         """
+        # TODO: introduce friction/drag?
+        drag = 0.05
         actions = actions.t().contiguous()
 
         self.steps += 1
@@ -283,7 +289,7 @@ class Race(MultiEnvironment):
             return states, rewards.t()
 
         # if player won/died ignore it's action
-        actions[~self.alive] = 0  # noop
+        actions[~self.alive | ~self.valid.view(self.alive.shape)] = 0  # noop
 
         #  choose move vector (thats car and action dependent)
         dir_flag = self.action_dirs[actions.view(-1)]  # [num_boards * num_players]
@@ -300,8 +306,8 @@ class Race(MultiEnvironment):
         # pick boards with alive players
         update_mask = (self.alive.view(-1) & is_moving & self.valid).nonzero().squeeze(-1)
 
-        rewards = torch.empty((num_boards * self.num_players), device=device)
-        rewards.fill_(self.negative_reward)  # small negative reward over time
+        rewards = torch.zeros((num_boards * self.num_players), device=device)
+        rewards[~self.finishes.view(-1)] = self.negative_reward  # small negative reward over time for not finished
 
         if update_mask.numel() > 0:  # anyone moved
             # check collisions
@@ -328,8 +334,10 @@ class Race(MultiEnvironment):
             new_speed[~self.alive] = 0.
 
         # update all player variables
+        drags = 1. - (1. - speed_flag.abs()) * drag
+
         self.directions = new_dirs
-        self.speeds = new_speed
+        self.speeds = new_speed * drags.view(new_speed.shape)
         self.positions = new_pos
 
         # return states (state is just distances in few directions)
@@ -349,7 +357,7 @@ class Race(MultiEnvironment):
             states[alive_mask] = alive_states.clamp(max=self.max_distance) / self.max_distance
 
         # record history
-        self.history.append((self.positions[0].tolist(), self.directions[0].tolist()))
+        self.history.append((self.positions[self.record_id].tolist(), self.directions[self.record_id].tolist()))
 
         states = torch.cat((states.view(num_boards, self.num_players, -1),
                             self.speeds[:, :, None] / self.cars_max_speed[None, :, None]), dim=-1)
@@ -397,6 +405,7 @@ class Race(MultiEnvironment):
 
         width, height = 640, 480
         scale = 150.  # px == 1unit
+        board = self.record_id * self.num_players
 
         record = 255 * np.ones((self.num_players, len(self.history), height, width, 3), dtype=np.uint8)
 
@@ -409,7 +418,7 @@ class Race(MultiEnvironment):
                 px = width // 2 - px
                 py = height // 2 - py
                 # draw every segment of first track
-                for x1, y1, x2, y2 in self.bounds[0, :, :]:
+                for x1, y1, x2, y2 in self.bounds[board, :, :]:
                     x1, y1, x2, y2 = map(int, (x1 * scale + px, y1 * scale + py,
                                                x2 * scale + px, y2 * scale + py))
                     cv2.line(record[player, frame], (x1, height - y1), (x2, height - y2), (0, 0, 0, 0),
@@ -423,7 +432,7 @@ class Race(MultiEnvironment):
                 obs_segm = torch.tensor(position, device=device).view(1, 2).repeat(self.observation_size, 1)
                 obs_segm = torch.cat((obs_segm, obs_dirs), dim=-1)
 
-                alive_states = self._smallest_distance(self.bounds[:1, :, :], obs_segm[None, :, :])
+                alive_states = self._smallest_distance(self.bounds[board: board + 1, :, :], obs_segm[None, :, :])
                 alive_states = alive_states.clamp(max=self.max_distance).squeeze(0)
                 mx, my = width // 2, height // 2
                 for d, dist in zip(obs_dirs, alive_states):
@@ -434,7 +443,7 @@ class Race(MultiEnvironment):
                              (0, 170, 0, 0), thickness=1, lineType=cv2.LINE_AA)
 
                 # player position
-                fx1, fy1, fx2, fy2 = self.reward_bound[0, 0, :]
+                fx1, fy1, fx2, fy2 = self.reward_bound[board, 0, :]
                 fx1, fy1, fx2, fy2 = map(int, (fx1 * scale + px, fy1 * scale + py,
                                                fx2 * scale + px, fy2 * scale + py))
                 cv2.line(record[player, frame], (fx1, height - fy1), (fx2, height - fy2), (170, 0, 0, 0),
@@ -551,7 +560,7 @@ class Race(MultiEnvironment):
                 total_time -= self.framerate
                 fb = (0, 1, 2)[actions[key.UP] - actions[key.DOWN]]
                 lr = (0, 3, 6)[actions[key.RIGHT] - actions[key.LEFT]]
-                act = torch.zeros((self.num_tracks, self.num_players), dtype=torch.int64, device=device)
+                act = torch.zeros((self.num_players, self.num_tracks), dtype=torch.int64, device=device)
                 act[0, 0] = fb + lr
                 self.step(act)
 

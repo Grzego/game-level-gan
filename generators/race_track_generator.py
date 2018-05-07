@@ -1,9 +1,8 @@
 import torch
 from torch import nn
 from torch import optim
-from torch.nn import functional as F
 
-from utils import device, gumbel_noise
+from utils import device, Bipolar
 
 
 class GeneratorNetwork(nn.Module):
@@ -11,36 +10,36 @@ class GeneratorNetwork(nn.Module):
         super().__init__()
 
         self.latent_size = latent_size
+        self.input_size = 2
         self.output_size = 2
         self.internal_size = 256
 
         self.unpack_idea = nn.Sequential(
-            nn.Linear(latent_size, self.internal_size),
-            nn.ELU()
+            # TODO: add some attention over latent code?
+            nn.Linear(latent_size + self.input_size, self.internal_size),
+            Bipolar(nn.ELU())
         )
-        self.make_level = nn.LSTM(self.output_size, self.internal_size, num_layers=2)
+        self.make_level = nn.LSTM(self.internal_size, self.internal_size, num_layers=2)
         self.level_widths = nn.Sequential(
-            nn.GroupNorm(self.internal_size // 64, self.internal_size),
+            # nn.GroupNorm(self.internal_size // 64, self.internal_size),
             nn.Linear(self.internal_size, 1),
             nn.Sigmoid()
         )
         self.level_angles = nn.Sequential(
-            nn.GroupNorm(self.internal_size // 64, self.internal_size),
+            # nn.GroupNorm(self.internal_size // 64, self.internal_size),
             nn.Linear(self.internal_size, 1),
             nn.Tanh()
         )
 
     def forward(self, noise, num_segments):
         # noise = [batch_size, latent_size]
-        idea = self.unpack_idea(noise)
-        coords = noise.new_zeros((noise.size(0), self.output_size))
-
-        idea = torch.stack((idea, torch.zeros_like(idea)), dim=0)
 
         level = []
-        idea = (idea, idea)
+        state = None
+        coords = noise.new_zeros((noise.size(0), self.output_size))
         for _ in range(num_segments):
-            coords, idea = self.make_level(coords.unsqueeze(0), idea)
+            idea = self.unpack_idea(torch.cat((coords, noise), dim=-1))
+            coords, state = self.make_level(idea.unsqueeze(0), state)
 
             flatten = coords.squeeze(0)
             angles = self.level_angles(flatten)  # [batch_size, 1]
@@ -82,10 +81,10 @@ class RaceTrackGenerator(object):
 
         prob_wins = pred_winners * reverse_mask + shift_mask
         loss = -torch.mean(torch.log(prob_wins + 1e-8))
-        loss.backward()
 
-        self.optimizer.step()
         self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
         return loss.item()
 

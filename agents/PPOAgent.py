@@ -8,11 +8,11 @@ from utils import device, gumbel_noise
 
 
 class PPOAgent(Agent):
-    def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01, eps=0.2):
+    def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01, eps=0.1):
         self.num_actions = num_actions
         self.network = network.to(device)
         self.old_network = copy.deepcopy(self.network)
-        self.optimizer = optim.Adam(network.parameters(), lr=lr)
+        self.optimizer = optim.Adam(network.parameters(), lr=lr, weight_decay=0.0001)  # TODO: check with weight decay
         self.discount = discount
         self.beta = beta
         self.eps = eps
@@ -66,7 +66,7 @@ class PPOAgent(Agent):
         actions = torch.cat(self.actions).view(-1)
         policy = torch.cat(self.policies).view(-1, self.num_actions)
         value = torch.cat(self.values).view(-1)
-        old_policy = torch.cat(self.old_policies). view(-1, self.num_actions)
+        old_policy = torch.cat(self.old_policies). view(-1, self.num_actions).detach()
 
         indices = torch.arange(policy.size(0), dtype=torch.long)
 
@@ -75,14 +75,14 @@ class PPOAgent(Agent):
         # MSE on rewards and values
         loss = 0.5 * torch.mean(torch.pow(advantage, 2.))
         # clipped surrogate objective
-        loss -= torch.mean(torch.min(ratio * advantage.detach(),
-                                     torch.clamp(ratio, 1. - self.eps, 1. + self.eps) * advantage.detach()))
+        loss += torch.mean(torch.min(-ratio * advantage.detach(),
+                                     -torch.clamp(ratio, 1. - self.eps, 1. + self.eps) * advantage.detach()))
         # entropy pentalty
         # loss += self.beta * torch.mean(torch.sum(policy * torch.log(policy + 1e-8), dim=-1))
-        loss.backward()
 
-        self.optimizer.step()
         self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
         self.reset()
 
         return loss.item(), torch.mean(value).item()
