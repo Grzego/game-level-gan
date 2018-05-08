@@ -3,7 +3,6 @@ import torch
 import random
 import numpy as np
 from tensorboardX import SummaryWriter
-from recordclass import recordclass
 
 from game import Race, RaceCar
 from agents import PPOAgent
@@ -11,21 +10,22 @@ from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, device
 
-resume = None  # os.path.join('experiments', 'run-6')
+learned_agents = None  # os.path.join('experiments', 'run-1')
+resume = None
 
 
 def main():
     # board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
 
     latent, num_players = 16, 2
-    track_generator = RaceTrackGenerator(latent, lr=1e-6)
+    track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
     batch_size = 32
-    num_segments = 1
-    cars = [RaceCar(max_speed=60., acceleration=1., angle=45.),
+    num_segments = 1 if learned_agents is None else 16
+    cars = [RaceCar(max_speed=90., acceleration=1., angle=30.),
             RaceCar(max_speed=45., acceleration=1., angle=60.)]
-    game = Race(timeout=3., framerate=1./20., cars=cars)
+    game = Race(timeout=3. + num_segments / 1.5, framerate=1./20., cars=cars)
 
     # create discriminator for predicting winners
     discriminator = RaceWinnerDiscriminator(num_players, lr=2e-5)
@@ -41,9 +41,9 @@ def main():
 
     epoch = 0
     # load agents if resuming
-    if resume:
+    if learned_agents:
         for i, a in enumerate(agents):
-            path = find_latest(resume, 'agent_{}_*.pt'.format(i))
+            path = find_latest(learned_agents, 'agent_{}_*.pt'.format(i))
             a.network.load_state_dict(torch.load(path))
             epoch = int(path.split('_')[-1].split('.')[0])
 
@@ -79,7 +79,7 @@ def main():
         # TODO: large random tracks may be invalid making it impossible to add more segments
         cur_mean = game.finishes.float().mean().item()
         finish_mean = 0.9 * finish_mean + 0.1 * cur_mean
-        print('; random finish mean: {:7.5f}'.format(cur_mean))
+        print('; random finish mean: {:7.5f}'.format(finish_mean))
 
         summary_writer.add_scalar('summary/finishes', cur_mean, global_step=e)
 
@@ -91,7 +91,7 @@ def main():
             # TODO: use average race time here
             game.change_timeout(3. + num_segments / 1.5)
             print('{} -- Increased number of segments to {}'.format(e, num_segments))
-        elif finish_mean > 0.9 and num_segments == 16:
+        elif agent_training and e >= 20000 and finish_mean > 0.9 and num_segments == 16:
             agent_training = False
             for i, a in enumerate(agents):
                 torch.save(a.network.state_dict(), os.path.join(run_path, 'agent_{}_{}.pt'.format(i, e)))
@@ -112,12 +112,10 @@ def main():
                 summary_writer.add_scalar('summary/agent_{}/loss'.format(i), aloss, global_step=e)
                 summary_writer.add_scalar('summary/agent_{}/mean_val'.format(i), mean_val, global_step=e)
 
-            # if e % 1000 == 0:
-                # save models
-                # for i, a in enumerate(agents):
-                #     torch.save(a.network.state_dict(), os.path.join(run_path, 'agent_{}_{}.pt'.format(i, e)))
-
         if not agent_training:
+            for a in agents:
+                a.reset()
+
             # discriminator calculate loss and perform backward pass
             winners = game.winners()
             for p in range(num_players):
