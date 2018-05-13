@@ -10,16 +10,17 @@ class GeneratorNetwork(nn.Module):
         super().__init__()
 
         self.latent_size = latent_size
+        self.noise_size = 64
         self.input_size = 2
         self.output_size = 2
-        self.internal_size = 256
+        self.internal_size = 512
 
         self.unpack_idea = nn.Sequential(
             # TODO: add some attention over latent code?
-            nn.Linear(latent_size + self.input_size, self.internal_size),
+            nn.Linear(latent_size + self.input_size + self.noise_size, self.internal_size),
             Bipolar(nn.ELU())
         )
-        self.make_level = nn.LSTM(self.internal_size, self.internal_size, num_layers=2)
+        self.make_level = nn.LSTM(self.internal_size, self.internal_size, num_layers=3)
         self.level_widths = nn.Sequential(
             # nn.GroupNorm(self.internal_size // 64, self.internal_size),
             nn.Linear(self.internal_size, 1),
@@ -31,14 +32,16 @@ class GeneratorNetwork(nn.Module):
             nn.Tanh()
         )
 
-    def forward(self, noise, num_segments):
-        # noise = [batch_size, latent_size]
-
+    def forward(self, latent, num_segments):
+        # latent = [batch_size, latent_size]
         level = []
         state = None
-        coords = noise.new_zeros((noise.size(0), self.output_size))
+        coords = latent.new_zeros((latent.size(0), self.output_size))
         for _ in range(num_segments):
-            idea = self.unpack_idea(torch.cat((coords, noise), dim=-1))
+            noise = latent.new_empty((latent.size(0), self.noise_size))
+            noise.normal_()
+
+            idea = self.unpack_idea(torch.cat((coords, latent, noise), dim=-1))
             coords, state = self.make_level(idea.unsqueeze(0), state)
 
             flatten = coords.squeeze(0)
@@ -65,7 +68,7 @@ class RaceTrackGenerator(object):
         From random vector generate multiple samples of tracks with `track_length`.
         Track is a sequence of shape [num_samples, track_length, (arc, width)].
         """
-        noise = torch.randn((num_samples, self.latent_size), device=device, requires_grad=True)
+        noise = torch.randn((num_samples, self.latent_size), device=device)
         return self.generator(noise, track_length)
 
     def train(self, pred_winners):

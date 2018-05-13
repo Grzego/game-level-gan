@@ -28,11 +28,19 @@ class DiscriminatorNetwork(nn.Module):
 
 
 class RaceWinnerDiscriminator(object):
-    def __init__(self, num_players, lr=1e-4):
+    def __init__(self, num_players, lr=1e-4, asynchronous=False):
         self.num_players = num_players
+        self.asynchronous = asynchronous
+        self.lr = lr
         self.network = DiscriminatorNetwork(num_players + 1).to(device)  # +1 for invalid option
-        self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
+        self.optimizer = None
         self.stats = torch.ones(num_players + 1, device=device)
+
+        if not asynchronous:
+            self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
+
+    def async_optim(self, optimizer):
+        self.optimizer = optimizer
 
     def forward(self, tracks):
         return self.network(tracks)
