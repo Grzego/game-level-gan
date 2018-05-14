@@ -4,13 +4,13 @@ from torch.nn import functional as F
 import copy
 
 from .agent import Agent
-from utils import device, gumbel_noise
+from utils import device, gumbel_noise_like
 
 
 class PPOAgent(Agent):
     def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01, eps=0.1):
         self.num_actions = num_actions
-        self.network = network.to(device)
+        self.network = network
         self.old_network = copy.deepcopy(self.network)
         self.optimizer = optim.Adam(network.parameters(), lr=lr, weight_decay=0.0001)  # TODO: check with weight decay
         self.discount = discount
@@ -41,7 +41,7 @@ class PPOAgent(Agent):
         old_policy, _ = self.old_network(state.detach())
 
         sq_policy = old_policy.squeeze()
-        gumbel = gumbel_noise(sq_policy.shape)
+        gumbel = gumbel_noise_like(sq_policy)
         action = torch.argmax(sq_policy + gumbel, dim=-1)
 
         self.actions.append(action)
@@ -54,7 +54,7 @@ class PPOAgent(Agent):
     def observe(self, reward):
         self.rewards.append(reward)
 
-    def learn(self):
+    def learn(self, device=device):
         num_steps = len(self.rewards)
         # discount reward over whole episode
         r = 0.

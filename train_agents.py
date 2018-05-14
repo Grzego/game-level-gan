@@ -24,7 +24,7 @@ def main():
 
     # create agents with LSTM policy network
     agents = [PPOAgent(game.actions,
-                       LSTMPolicy(game.state_shape()[0], game.actions),
+                       LSTMPolicy(game.state_shape()[0], game.actions).to(device),
                        lr=5e-5, discount=0.99, eps=0.1)
               for _ in range(game.num_players)]
 

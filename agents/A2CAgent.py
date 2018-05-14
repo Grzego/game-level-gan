@@ -3,7 +3,7 @@ from torch import optim
 from torch.nn import functional as F
 
 from .agent import Agent
-from utils import device, gumbel_noise, one_hot
+from utils import device, gumbel_noise_like, one_hot
 
 
 class A2CAgent(Agent):

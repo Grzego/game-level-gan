@@ -1,7 +1,7 @@
 import math
 import torch
 
-from utils.pytorch_utils import device
+from utils import device
 from .environment import MultiEnvironment
 
 
@@ -18,9 +18,11 @@ class RaceCar(object):
 
 
 class Race(MultiEnvironment):
-    def __init__(self, timeout, cars: [RaceCar], observation_size=18, max_distance=10., framerate=1. / 30.):
+    def __init__(self, timeout, cars: [RaceCar], observation_size=18, max_distance=10., framerate=1. / 30.,
+                 device=device):
         # 1unit = 10m
         # TODO: try continuous actions
+        self.device = device
         self.timeout = timeout
         self.framerate = framerate
         self.num_players = len(cars)
@@ -97,8 +99,8 @@ class Race(MultiEnvironment):
 
         # add sentinels to tracks (0 in front and 0 in back of track for additional segment)
         num_boards = tracks.size(0)
-        tracks = torch.cat((torch.zeros((num_boards, 1, 2), device=device), tracks,
-                            torch.zeros((num_boards, 1, 2), device=device)),
+        tracks = torch.cat((torch.zeros((num_boards, 1, 2), device=self.device), tracks,
+                            torch.zeros((num_boards, 1, 2), device=self.device)),
                            dim=1)
 
         arcsum = math.radians(30.) * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
@@ -110,7 +112,7 @@ class Race(MultiEnvironment):
         right_vecs = perp_vecs[:, 1:, :] + perp_vecs[:, :-1, :]
         right_vecs /= right_vecs.norm(p=2., dim=-1, keepdim=True)
         right_vecs *= min_width + (max_width - min_width) * tracks[:, :-1, 1:]
-        right_vecs = torch.cat((torch.zeros((num_boards, 1, 2), device=device), right_vecs), dim=1)
+        right_vecs = torch.cat((torch.zeros((num_boards, 1, 2), device=self.device), right_vecs), dim=1)
         right_vecs[:, 0, 0] = min_width
         left_vecs = -right_vecs
 
@@ -131,21 +133,22 @@ class Race(MultiEnvironment):
         # [num_boards * num_players, num_segments, 4]
         self.bounds = bounds.unsqueeze(1).repeat(1, self.num_players, 1, 1).view(-1, *bounds.shape[-2:])
 
-        self.positions = torch.zeros((num_boards, self.num_players, 2), device=device)
+        self.positions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
         self.positions[:, :, 1] = 0.1  # 1m after a start
-        self.directions = torch.zeros((num_boards, self.num_players, 2), device=device)
+        self.directions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
         self.directions[:, :, 1] = 1.  # direction vectors should have length = 1.
-        self.speeds = torch.zeros((num_boards, self.num_players), device=device)
-        self.alive = torch.ones((num_boards, self.num_players), dtype=torch.uint8, device=device)
-        self.scores = torch.empty((num_boards, self.num_players), dtype=torch.int32, device=device)
+        self.speeds = torch.zeros((num_boards, self.num_players), device=self.device)
+        self.alive = torch.ones((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
+        self.scores = torch.empty((num_boards, self.num_players), dtype=torch.int32, device=self.device)
         self.scores.fill_(self.steps_limit + 1)  # time when finished
-        self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=device)
+        self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
 
         valid = self._is_correct(torch.cat((bounds, reward_line), dim=1))
         self.valid = valid.view(-1, 1).repeat(1, self.num_players).view(-1).contiguous()
         any_valid = valid.sum().item() > 0
 
-        return self.step(torch.zeros((self.num_players, num_boards), dtype=torch.int64, device=device))[0], any_valid
+        return self.step(torch.zeros((self.num_players, num_boards),
+                                     dtype=torch.int64, device=self.device))[0], any_valid
 
     @staticmethod
     def _segment_collisions(segments, tests, special=False, return_orientations=False):
@@ -285,7 +288,7 @@ class Race(MultiEnvironment):
             num_boards, num_seg = actions.size(0), self.bounds.size(2)
 
             if self.alive.sum().item() == 0:  # nobody is alive
-                states = torch.zeros((self.num_players, num_boards, self.observation_size + 1), device=device)
+                states = torch.zeros((self.num_players, num_boards, self.observation_size + 1), device=self.device)
                 rewards = (1. - self.finishes.float()) * self.negative_reward
                 return states, rewards.t()
 
@@ -307,7 +310,7 @@ class Race(MultiEnvironment):
             # pick boards with alive players
             update_mask = (self.alive.view(-1) & is_moving & self.valid).nonzero().squeeze(-1)
 
-            rewards = torch.zeros((num_boards * self.num_players), device=device)
+            rewards = torch.zeros((num_boards * self.num_players), device=self.device)
             rewards[~self.finishes.view(-1)] = self.negative_reward  # small negative reward over time for not finished
 
             if update_mask.numel() > 0:  # anyone moved
@@ -342,11 +345,11 @@ class Race(MultiEnvironment):
             self.positions = new_pos
 
             # return states (state is just distances in few directions)
-            states = torch.zeros((num_boards * self.num_players, self.observation_size), device=device)
+            states = torch.zeros((num_boards * self.num_players, self.observation_size), device=self.device)
             alive_mask = self.alive.view(-1).nonzero().squeeze(-1)
             if alive_mask.numel() > 0:
                 obs_angles = torch.linspace(-math.pi, math.pi * (1. - 2. / self.observation_size),
-                                            self.observation_size).to(device).view(1, -1)
+                                            self.observation_size).to(self.device).view(1, -1)
                 obs_angles = obs_angles.repeat(num_boards * self.num_players, 1).view(-1)
                 rot_dirs = new_dirs.view(-1, 1, 2).repeat(1, self.observation_size, 1).view(-1, 2)
                 obs_dirs = self._rotate_vecs(rot_dirs, obs_angles)
@@ -375,7 +378,7 @@ class Race(MultiEnvironment):
           if any player finished, faster one is a winner
           if both players are dead, one that survived the longest is a winner
         """
-        winner = torch.zeros((self.finishes.size(0),), dtype=torch.long, device=device)
+        winner = torch.zeros((self.finishes.size(0),), dtype=torch.long, device=self.device)
 
         anyone_finished = self.finishes.sum(-1) > 0
         if torch.sum(anyone_finished) > 0:
@@ -427,11 +430,11 @@ class Race(MultiEnvironment):
                              thickness=3, lineType=cv2.LINE_AA)
                 # distances
                 obs_angles = torch.linspace(-math.pi, math.pi * (1. - 2. / self.observation_size),
-                                            self.observation_size).to(device)
-                rot_dirs = torch.tensor(direction, device=device).view(1, 2).repeat(self.observation_size, 1)
+                                            self.observation_size).to(self.device)
+                rot_dirs = torch.tensor(direction, device=self.device).view(1, 2).repeat(self.observation_size, 1)
                 obs_dirs = self._rotate_vecs(rot_dirs, obs_angles)
                 obs_dirs = obs_dirs.view(self.observation_size, 2)
-                obs_segm = torch.tensor(position, device=device).view(1, 2).repeat(self.observation_size, 1)
+                obs_segm = torch.tensor(position, device=self.device).view(1, 2).repeat(self.observation_size, 1)
                 obs_segm = torch.cat((obs_segm, obs_dirs), dim=-1)
 
                 alive_states = self._smallest_distance(self.bounds[board: board + 1, :, :], obs_segm[None, :, :])
@@ -571,7 +574,7 @@ class Race(MultiEnvironment):
                 total_time -= self.framerate
                 fb = (0, 1, 2)[actions[key.UP] - actions[key.DOWN]]
                 lr = (0, 3, 6)[actions[key.RIGHT] - actions[key.LEFT]]
-                act = torch.zeros((self.num_players, self.num_tracks), dtype=torch.int64, device=device)
+                act = torch.zeros((self.num_players, self.num_tracks), dtype=torch.int64, device=self.device)
                 act[0, 0] = fb + lr
                 self.step(act)
 

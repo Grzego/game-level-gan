@@ -18,11 +18,12 @@ def one_hot(a, dim=-1, num_classes=None):
     return zeros.scatter_(dim, a.unsqueeze(dim), 1)
 
 
-def gumbel_noise(shape):
+def gumbel_noise_like(tensor):
     """
     Requires `a` to be values before applying softmax.
     """
-    gumbel = torch.rand(*shape, device=device)
+    gumbel = torch.empty_like(tensor)
+    gumbel.uniform_()
     gumbel.add_(1e-8).log_().neg_()
     gumbel.add_(1e-8).log_().neg_()
     return gumbel
