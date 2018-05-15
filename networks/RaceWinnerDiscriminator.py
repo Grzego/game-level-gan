@@ -44,7 +44,8 @@ class RaceWinnerDiscriminator(object):
         self.network.to(device)
 
         if not asynchronous:
-            self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
+            # self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
+            self.optimizer = optim.RMSprop(self.network.parameters(), lr=lr)
 
     def async_optim(self, optimizer):
         self.optimizer = optimizer

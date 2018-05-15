@@ -14,10 +14,11 @@ from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, device
 
 learned_agents = os.path.join('learned')
+resume = os.path.join('experiments', 'run-5')
 num_players = 2
-batch_size = 32
-num_segments = 16
-num_proc = 3
+batch_size = 16
+num_segments = 24
+num_proc = 5
 
 
 def play_games(balance_queue: mp.Queue, result_queue: mp.Queue):
@@ -41,7 +42,9 @@ def play_games(balance_queue: mp.Queue, result_queue: mp.Queue):
     results = {}
     while True:
         # generate boards
-        boards = torch.empty((batch_size, num_segments, 2), dtype=torch.float, device=device)
+        # segments = random.randint(num_segments // 2, num_segments)
+        boards = torch.empty((batch_size, num_segments, 2), 
+dtype=torch.float, device=device)
         boards[:, :, 0].uniform_(-1., 1.)
         boards[:, :, 1].uniform_(0., 1.)
 
@@ -96,6 +99,11 @@ def train(run_path, batch_queue: mp.Queue, result_queue: mp.Queue):
     print('Starting learning discriminator...')
 
     discriminator = RaceWinnerDiscriminator(num_players, lr=1e-4)
+    # discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5)
+
+    if resume:
+        path = find_latest(resume, 'discriminator_*.pt')
+        discriminator.network.load_state_dict(torch.load(path))
 
     step = 0
     result = {}
@@ -114,15 +122,17 @@ def train(run_path, batch_queue: mp.Queue, result_queue: mp.Queue):
 
 
 def log_results(run_path, result_queue: mp.Queue):
+    from collections import defaultdict
+
     print('Starting logging results...')
     summary_writer = SummaryWriter(os.path.join(run_path, 'summary'))
 
-    step = 0
+    steps = defaultdict(lambda: 0)
     while True:
         result = result_queue.get()
         for tag, data in result.items():
-            summary_writer.add_scalar(tag, data, global_step=step)
-        step += 1
+            summary_writer.add_scalar(tag, data, global_step=steps[tag])
+            steps[tag] += 1
 
 
 def main():
