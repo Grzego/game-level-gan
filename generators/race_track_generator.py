@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from torch import optim
+from torch.nn import functional as F
 
 from utils import device
 
@@ -15,6 +16,7 @@ class GeneratorNetwork(nn.Module):
         self.output_size = 2
         self.rnn_size = 512
         self.code_size = 2048
+        self.mixtures = 5
 
         self.unpack_idea = nn.Sequential(
             nn.Linear(latent_size, self.code_size),
@@ -25,13 +27,15 @@ class GeneratorNetwork(nn.Module):
             nn.Linear(self.rnn_size, self.code_size),
             nn.Sigmoid()
         )
-        self.level_widths = nn.Sequential(
-            nn.Linear(self.rnn_size, 1),
-            nn.Sigmoid()
-        )
-        self.level_angles = nn.Sequential(
-            nn.Linear(self.rnn_size, 1),
-            nn.Tanh()
+        # self.level_widths = nn.Sequential(
+        #     nn.Linear(self.rnn_size, 1),
+        #     nn.Sigmoid()
+        # )
+        self.angles_means = nn.Linear(self.rnn_size, self.mixtures)
+        self.angles_vars = nn.Linear(self.rnn_size, self.mixtures)
+        self.angles_mix = nn.Sequential(
+            nn.Linear(self.rnn_size, self.mixtures),
+            nn.Softmax(dim=-1)
         )
 
     def flatten_parameters(self):
@@ -51,11 +55,18 @@ class GeneratorNetwork(nn.Module):
             segment, state = self.make_level(torch.mul(idea, attention).unsqueeze(0), state)
 
             flatten = segment.squeeze(0)
-            angles = self.level_angles(flatten)
-            widths = self.level_widths(flatten)
+            # angles = self.level_angles(flatten)
+            # widths = self.level_widths(flatten)
             attention = self.attention(flatten)
 
-            level.append(torch.cat((angles, widths), dim=-1))
+            rho = self.angles_mix(flatten)
+            mu = torch.sum(rho * self.angles_means(flatten), dim=-1, keepdim=True)
+            sigma = torch.sum(rho * torch.exp(self.angles_vars(flatten)), dim=-1, keepdim=True)
+
+            samples = torch.distributions.Normal(loc=mu, scale=sigma).rsample()
+            angles = F.tanh(samples)
+
+            level.append(torch.cat((angles, torch.zeros_like(angles)), dim=-1))  # constant width for now
 
         return torch.stack(level, dim=1)  # [batch_size, num_segments, internal_size]
 

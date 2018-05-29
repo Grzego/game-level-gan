@@ -92,7 +92,8 @@ class Race(MultiEnvironment):
 
         # TODO: test different settings
         """
-        min_width, max_width = 0.5, 1.0
+        length = 0.2
+        min_width, max_width = 0.5, 2.0
 
         self.steps = 0
         self.num_tracks = tracks.size(0)
@@ -104,8 +105,8 @@ class Race(MultiEnvironment):
                             torch.zeros((num_boards, 1, 2), device=self.device)),
                            dim=1)
 
-        arcsum = math.radians(30.) * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
-        segment_vecs = torch.cat((torch.sin(arcsum), torch.cos(arcsum)), dim=2)
+        arcsum = math.radians(10.) * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
+        segment_vecs = torch.cat((torch.sin(arcsum), torch.cos(arcsum)), dim=2) * length  # each segment is 1m long
 
         perp_vecs = segment_vecs.clone()
         perp_vecs[:, :, 0], perp_vecs[:, :, 1] = segment_vecs[:, :, 1], -segment_vecs[:, :, 0]

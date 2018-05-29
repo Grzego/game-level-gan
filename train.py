@@ -4,6 +4,7 @@ import signal
 import torch
 from torch import optim
 import torch.multiprocessing as mp
+import numpy as np
 from tensorboardX import SummaryWriter
 
 from game import Race, RaceCar
@@ -16,8 +17,8 @@ from utils import find_next_run_dir, find_latest, device
 resume = None  # os.path.join('experiments', 'run-5')
 num_players = 2
 batch_size = 32
-max_segments = 16
-num_proc = 1
+max_segments = 128
+num_proc = 3
 latent = 64
 
 
@@ -31,20 +32,26 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
     for agent in agents:
         agent.async_optim(optim.Adam(agent.network.parameters(), lr=1e-4, weight_decay=0.0001))
 
+    # flatten params
+    generator.network.flatten_parameters()
+    discriminator.network.flatten_parameters()
+    for agent in agents:
+        agent.network.flatten_parameters()
+        agent.old_network.flatten_parameters()
+
     # create game
-    cars = [RaceCar(max_speed=60., acceleration=2., angle=60.),
-            RaceCar(max_speed=60., acceleration=1., angle=90.)]
-    game = Race(timeout=3., framerate=1. / 20., cars=cars, log_history=pid == 0)
+    cars = [RaceCar(max_speed=60., acceleration=2., angle=40.),
+            RaceCar(max_speed=60., acceleration=1., angle=80.)]
+    game = Race(timeout=3., framerate=1. / 20., cars=cars)
 
     # params
-    num_segments = 1
+    num_segments = 8
     finish_mean = 0.
     episode = -1
-    step = int(pid == 0)
 
     result = {}
     while True:
-        episode += step
+        episode += 1
         if episode % 50 == 0:
             print(f'{pid:3d} -- episode {episode}')
 
@@ -71,13 +78,13 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
         finish_mean = 0.9 * finish_mean + 0.1 * cur_mean
         result['summary/finishes'] = cur_mean
 
-        if finish_mean > 0.8 and num_segments < max_segments:
+        if finish_mean > (0.75 + 0.1 * pid / (num_proc - 1)) and num_segments < max_segments:
             # increase number of segments and reset mean
-            num_segments += 1
+            num_segments += 4
             finish_mean = 0.
             # change timeout so that players have time to finish race
-            game.change_timeout(3. + num_segments / 1.5)
-            print(f'-- Increased number of segments to {num_segments}')
+            game.change_timeout(3. + num_segments / 5. / 1.5)
+            print(f'{pid:3d} -- Increased number of segments to {num_segments}')
 
         # discriminator calculate loss and perform backward pass
         winners = game.winners()
@@ -96,14 +103,14 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
         result['summary/invalid'] = (winners == -1).float().mean().item()
 
         # save episode
-        if episode % 50 == 0:
+        if (episode - 50 * (pid + 1)) % (50 * num_proc) == 0:
             game.record_episode(os.path.join(run_path, 'videos', f'episode_{episode}'))
             # save boards as images in tensorboard
             for i, img in enumerate(game.tracks_images(top_n=batch_size)):
                 result[f'summary/boards_{i}'] = img
 
         # save networks
-        if episode % 1000 == 0:
+        if (episode - 1000 * (pid + 1)) % (1000 * num_proc) == 0:
             torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{episode}.pt'))
             torch.save(generator.network.state_dict(), os.path.join(run_path, f'generator_{episode}.pt'))
             for i, a in enumerate(agents):
@@ -123,7 +130,10 @@ def log_results(run_path, result_queue: mp.Queue):
     while True:
         result = result_queue.get()
         for tag, data in result.items():
-            summary_writer.add_scalar(tag, data, global_step=steps[tag])
+            if isinstance(data, np.ndarray):
+                summary_writer.add_image(tag, data, global_step=steps[tag])
+            else:
+                summary_writer.add_scalar(tag, data, global_step=steps[tag])
             steps[tag] += 1
 
 
@@ -146,8 +156,6 @@ def main():
               for _ in range(game.num_players)]
     for agent in agents:
         agent.network.share_memory()
-        agent.network.flatten_parameters()
-        agent.old_network.flatten_parameters()
 
     del game
 
@@ -160,7 +168,6 @@ def main():
     # create discriminator
     discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5, asynchronous=True)
     discriminator.network.share_memory()
-    discriminator.network.flatten_parameters()
 
     if resume:
         path = find_latest(resume, 'discriminator_*.pt')
@@ -169,7 +176,6 @@ def main():
     # create generator
     generator = RaceTrackGenerator(latent, lr=1e-5, asynchronous=True)
     generator.network.share_memory()
-    generator.network.flatten_parameters()
 
     if resume:
         path = find_latest(resume, 'generator_*.pt')
@@ -181,14 +187,14 @@ def main():
     signal.signal(signal.SIGINT, sigint_handler)
 
     processes = [pool.apply_async(log_results, args=(run_path, result_queue))]
-    for pid in range(1, num_proc + 1):
+    for pid in range(num_proc):
         processes.append(pool.apply_async(train, args=(generator, discriminator, agents, result_queue, pid, run_path)))
 
     try:
         while True:
             for p in processes:
                 try:
-                    p.get(timeout=1.)  # maybe one month will be enough
+                    p.get(timeout=1.)
                 except mp.TimeoutError:
                     pass
     except KeyboardInterrupt:
