@@ -14,10 +14,10 @@ from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, device
 
 learned_agents = os.path.join('learned')
-resume = os.path.join('experiments', 'run-5')
+resume = None  # os.path.join('experiments', 'run-5')
 num_players = 2
-batch_size = 16
-num_segments = 24
+batch_size = 32
+num_segments = 16
 num_proc = 5
 
 
@@ -43,8 +43,7 @@ def play_games(balance_queue: mp.Queue, result_queue: mp.Queue):
     while True:
         # generate boards
         # segments = random.randint(num_segments // 2, num_segments)
-        boards = torch.empty((batch_size, num_segments, 2), 
-dtype=torch.float, device=device)
+        boards = torch.empty((batch_size, num_segments, 2), dtype=torch.float, device=device)
         boards[:, :, 0].uniform_(-1., 1.)
         boards[:, :, 1].uniform_(0., 1.)
 
@@ -52,7 +51,7 @@ dtype=torch.float, device=device)
         states, any_valid = game.reset(boards)
 
         while any_valid and not game.finished():
-            actions = torch.stack([a.act(s) for a, s in zip(agents, states)], dim=0)
+            actions = torch.stack([a.act(s, deterministic=True) for a, s in zip(agents, states)], dim=0)
             states, rewards = game.step(actions)
             for a, r in zip(agents, rewards):
                 a.observe(r)

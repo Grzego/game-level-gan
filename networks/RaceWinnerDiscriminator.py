@@ -4,7 +4,6 @@ from torch import optim
 from torch.nn import functional as F
 
 from utils import device
-from utils.pytorch_utils import one_hot
 
 
 class DiscriminatorNetwork(nn.Module):
@@ -12,12 +11,14 @@ class DiscriminatorNetwork(nn.Module):
         super().__init__()
 
         self.input_size = 2
-        self.hidden_size = 512
+        self.hidden_size = 256
         self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=3, batch_first=True)
         self.prediction = nn.Sequential(
             # nn.GroupNorm(self.hidden_size // 64, self.hidden_size),
-            nn.Linear(self.hidden_size, num_players),
-            nn.Softmax(dim=-1)
+            # nn.Linear(self.hidden_size, self.hidden_size // 2),
+            # nn.ELU(),
+            nn.Linear(self.hidden_size, num_players)
+            # nn.Softmax(dim=-1)
         )
 
     def flatten_parameters(self):
@@ -45,7 +46,7 @@ class RaceWinnerDiscriminator(object):
 
         if not asynchronous:
             # self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
-            self.optimizer = optim.RMSprop(self.network.parameters(), lr=lr)
+            self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
 
     def async_optim(self, optimizer):
         self.optimizer = optimizer
@@ -54,15 +55,15 @@ class RaceWinnerDiscriminator(object):
         self.network = network
 
     def forward(self, tracks):
-        return self.network(tracks)
+        return F.softmax(self.network(tracks), dim=-1)
 
     def loss(self, tracks, winners):
         wins = winners + 1
         # self.stats = 0.9 * self.stats + 0.1 * one_hot(wins, num_classes=self.num_players + 1).float().mean(0)
 
-        prob_winners = self.network(tracks)
-        pred_winners = torch.argmax(prob_winners, dim=-1)
-        return F.cross_entropy(prob_winners, wins), wins.eq(pred_winners).float().mean()
+        logits_winners = self.network(tracks)
+        pred_winners = torch.argmax(logits_winners, dim=-1)
+        return F.cross_entropy(logits_winners, wins), wins.eq(pred_winners).float().mean()
         # return F.cross_entropy(prob_winners, wins, 1. / (self.stats + 0.01)), wins.eq(pred_winners).float().mean()
 
     def train(self, tracks, winners):

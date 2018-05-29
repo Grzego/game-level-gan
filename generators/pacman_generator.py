@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch import optim
 
-from utils import device, gumbel_noise
+from utils import device, gumbel_noise_like
 
 
 class GeneratorNetwork(nn.Module):
@@ -70,7 +70,7 @@ class SimplePacmanGenerator(object):
         This function should sample this distributions
         and as a result return `num_samples` levels.
         """
-        gumbel = gumbel_noise(level.shape)  # [num_samples, 4, height, width]
+        gumbel = gumbel_noise_like(level)  # [num_samples, 4, height, width]
         _, argmax = torch.max(level + gumbel, dim=1)  # [num_samples, height, width]
         levels = one_hot(argmax, dim=1, num_classes=level.size(1))  # [num_samples, 4, height, width]
 

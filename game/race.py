@@ -19,7 +19,7 @@ class RaceCar(object):
 
 class Race(MultiEnvironment):
     def __init__(self, timeout, cars: [RaceCar], observation_size=18, max_distance=10., framerate=1. / 30.,
-                 device=device):
+                 log_history=True, device=device):
         # 1unit = 10m
         # TODO: try continuous actions
         self.device = device
@@ -65,6 +65,7 @@ class Race(MultiEnvironment):
         self.observation_size = observation_size
         self.max_distance = max_distance
         self.negative_reward = -0.01
+        self.log_history = log_history
         self.history = []  # keeps posision and direction for players on first board
         self.record_id = 0
 
@@ -361,8 +362,9 @@ class Race(MultiEnvironment):
                 states[alive_mask] = alive_states.clamp(max=self.max_distance) / self.max_distance
 
             # record history
-            self.history.append((self.positions[self.record_id].tolist(), self.directions[self.record_id].tolist(),
-                                 actions[self.record_id].tolist()))
+            if self.log_history:
+                self.history.append((self.positions[self.record_id].tolist(), self.directions[self.record_id].tolist(),
+                                     actions[self.record_id].tolist()))
 
             states = torch.cat((states.view(num_boards, self.num_players, -1),
                                 self.speeds[:, :, None] / self.cars_max_speed[None, :, None]), dim=-1)
@@ -403,6 +405,10 @@ class Race(MultiEnvironment):
 
         This method is rather inefficient and should be rarely used.
         """
+        if not self.log_history:
+            print('Logging of history is tuned off.')
+            return
+
         import os
         import cv2
         import moviepy.editor as mpy

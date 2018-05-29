@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from torch import optim
+from torch.nn import functional as F
 
 from utils import device, Bipolar
 
@@ -10,45 +11,49 @@ class GeneratorNetwork(nn.Module):
         super().__init__()
 
         self.latent_size = latent_size
-        self.noise_size = 64
+        # self.noise_size = 64
         self.input_size = 2
         self.output_size = 2
-        self.internal_size = 512
+        self.rnn_size = 512
+        self.code_size = 2048
 
         self.unpack_idea = nn.Sequential(
-            # TODO: add some attention over latent code?
-            nn.Linear(latent_size + self.input_size + self.noise_size, self.internal_size),
-            Bipolar(nn.ELU())
+            nn.Linear(latent_size, self.code_size),
+            nn.Tanh()
         )
-        self.make_level = nn.LSTM(self.internal_size, self.internal_size, num_layers=3)
+        self.make_level = nn.LSTM(self.code_size, self.rnn_size, num_layers=2)
+        self.attention = nn.Sequential(
+            nn.Linear(self.rnn_size, self.code_size),
+            nn.Sigmoid()
+        )
         self.level_widths = nn.Sequential(
-            # nn.GroupNorm(self.internal_size // 64, self.internal_size),
-            nn.Linear(self.internal_size, 1),
+            nn.Linear(self.rnn_size, 1),
             nn.Sigmoid()
         )
         self.level_angles = nn.Sequential(
-            # nn.GroupNorm(self.internal_size // 64, self.internal_size),
-            nn.Linear(self.internal_size, 1),
+            nn.Linear(self.rnn_size, 1),
             nn.Tanh()
         )
 
-    def forward(self, latent, num_segments):
+    def forward(self, latent, num_segments, t=0.):
         # latent = [batch_size, latent_size]
+        # coord_noise = latent.new_empty((latent.size(0), num_segments, self.output_size))
+        # coord_noise[:, :, 0].uniform_(-1., 1.)
+        # coord_noise[:, :, 1].uniform_(0., 1.)
+        attention = latent.new_ones(latent.size(0), self.code_size)
+        idea = self.unpack_idea(latent)
+
         level = []
         state = None
-        coords = latent.new_zeros((latent.size(0), self.output_size))
-        for _ in range(num_segments):
-            noise = latent.new_empty((latent.size(0), self.noise_size))
-            noise.normal_()
+        for s in range(num_segments):
+            segment, state = self.make_level(torch.mul(idea, attention).unsqueeze(0), state)
 
-            idea = self.unpack_idea(torch.cat((coords, latent, noise), dim=-1))
-            coords, state = self.make_level(idea.unsqueeze(0), state)
+            flatten = segment.squeeze(0)
+            angles = self.level_angles(flatten)
+            widths = self.level_widths(flatten)
+            attention = self.attention(flatten)
 
-            flatten = coords.squeeze(0)
-            angles = self.level_angles(flatten)  # [batch_size, 1]
-            widths = self.level_widths(flatten)  # [batch_size, 1]
-            coords = torch.cat((angles, widths), dim=-1)
-            level.append(coords)
+            level.append(torch.cat((angles, widths), dim=-1))
 
         return torch.stack(level, dim=1)  # [batch_size, num_segments, internal_size]
 
@@ -58,18 +63,24 @@ class RaceTrackGenerator(object):
     Generates levels for Race game.
     """
 
-    def __init__(self, latent_size, lr=1e-4):
+    def __init__(self, latent_size, lr=1e-4, asynchronous=False):
         self.latent_size = latent_size
-        self.generator = GeneratorNetwork(latent_size).to(device)
-        self.optimizer = optim.Adam(self.generator.parameters(), lr=lr)
+        self.network = GeneratorNetwork(latent_size).to(device)
+        self.optimizer = None
 
-    def generate(self, track_length, num_samples=1):
+        if not asynchronous:
+            self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
+
+    def async_optim(self, optimizer):
+        self.optimizer = optimizer
+
+    def generate(self, track_length, num_samples=1, t=0.):
         """
         From random vector generate multiple samples of tracks with `track_length`.
         Track is a sequence of shape [num_samples, track_length, (arc, width)].
         """
         noise = torch.randn((num_samples, self.latent_size), device=device)
-        return self.generator(noise, track_length)
+        return self.network(noise, track_length, t)
 
     def train(self, pred_winners):
         """

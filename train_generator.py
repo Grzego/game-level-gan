@@ -21,41 +21,43 @@ def main():
     track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
-    batch_size = 32
-    num_segments = 1 if learned_agents is None else 16
-    cars = [RaceCar(max_speed=60., acceleration=2., angle=60.),
-            RaceCar(max_speed=60., acceleration=1., angle=90.)]
-    game = Race(timeout=3. + num_segments / 1.5, framerate=1. / 20., cars=cars)
+    batch_size = 64
+    num_segments = 16
+    # cars = [RaceCar(max_speed=60., acceleration=2., angle=60.),
+    #         RaceCar(max_speed=60., acceleration=1., angle=90.)]
+    # game = Race(timeout=3. + num_segments / 1.5, framerate=1. / 20., cars=cars)
 
     # create discriminator for predicting winners
     discriminator = RaceWinnerDiscriminator(num_players, lr=1e-4)
 
     # create agents with LSTM policy network
-    agents = [PPOAgent(game.actions,
-                       LSTMPolicy(game.state_shape()[0], game.actions),
-                       lr=5e-5, discount=0.99, eps=0.1)
-              for _ in range(game.num_players)]
+    # agents = [PPOAgent(game.actions,
+    #                    LSTMPolicy(game.state_shape()[0], game.actions),
+    #                    lr=5e-5, discount=0.99, eps=0.1)
+    #           for _ in range(game.num_players)]
 
     run_path = find_next_run_dir('experiments')
     summary_writer = SummaryWriter(os.path.join(run_path, 'summary'))
 
-    epoch = 0
+    # epoch = 0
     # load agents if resuming
-    for i, a in enumerate(agents):
-        path = find_latest(learned_agents, 'agent_{}_*.pt'.format(i))
-        a.network.load_state_dict(torch.load(path))
-        epoch = int(path.split('_')[-1].split('.')[0])
+    # for i, a in enumerate(agents):
+    #     path = find_latest(learned_agents, 'agent_{}_*.pt'.format(i))
+    #     a.network.load_state_dict(torch.load(path))
+    #     epoch = int(path.split('_')[-1].split('.')[0])
 
     disc_path = find_latest(learned_discriminator, 'discriminator_*.pt')
     discriminator.network.load_state_dict(torch.load(disc_path))
 
-    finish_mean = 0.
-    for e in range(epoch, 10000000):
-        print()
-        print('Starting episode {}'.format(e))
+    print('Starting learning...')
+    # finish_mean = 0.
+    t_lim = 100000
+    for e in range(10000000):
+        # print('Starting episode {}'.format(e))
 
         # generate boards
-        boards = track_generator.generate(track_length=num_segments, num_samples=batch_size)
+        boards = track_generator.generate(track_length=num_segments, num_samples=batch_size,
+                                          t=max(0., (t_lim - e) / t_lim))
 
         # run agents to find who wins
         # total_rewards = np.zeros((batch_size, num_players))
@@ -100,7 +102,16 @@ def main():
 
         summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
 
-        if e % 1000 == 0:
+        if e % 500 == 0:
+            cars = [RaceCar(max_speed=60., acceleration=2., angle=60.),
+                    RaceCar(max_speed=60., acceleration=1., angle=90.)]
+            game = Race(timeout=3. + num_segments / 1.5, framerate=1. / 20., cars=cars)
+            game.reset(boards.detach()[:12])
+
+            for i, img in enumerate(game.tracks_images(top_n=12)):
+                summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)
+
+        if e % 10000 == 0:
             torch.save(track_generator.generator.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
 
 

@@ -8,11 +8,11 @@ from utils import device, gumbel_noise_like
 
 
 class PPOAgent(Agent):
-    def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01, eps=0.1):
+    def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01, eps=0.1, asynchronous=False):
         self.num_actions = num_actions
         self.network = network
         self.old_network = copy.deepcopy(self.network)
-        self.optimizer = optim.Adam(network.parameters(), lr=lr, weight_decay=0.0001)  # TODO: check with weight decay
+        self.optimizer = None
         self.discount = discount
         self.beta = beta
         self.eps = eps
@@ -22,7 +22,13 @@ class PPOAgent(Agent):
         self.values = []
         self.old_policies = []
 
+        if not asynchronous:
+            self.optimizer = optim.Adam(network.parameters(), lr=lr, weight_decay=0.0001)
+
         self.old_network.flatten_parameters()
+
+    def async_optim(self, optimizer):
+        self.optimizer = optimizer
 
     def reset(self):
         self.network.reset_state()
@@ -35,14 +41,17 @@ class PPOAgent(Agent):
         self.values = []
         self.old_policies = []
 
-    def act(self, state):
+    def act(self, state, deterministic=False):
         # stop gradient to state
         policy, value = self.network(state.detach())
         old_policy, _ = self.old_network(state.detach())
 
         sq_policy = old_policy.squeeze()
-        gumbel = gumbel_noise_like(sq_policy)
-        action = torch.argmax(sq_policy + gumbel, dim=-1)
+        if not deterministic:
+            gumbel = gumbel_noise_like(sq_policy)
+            action = torch.argmax(sq_policy + gumbel, dim=-1)
+        else:
+            action = torch.argmax(sq_policy, dim=-1)
 
         self.actions.append(action)
         self.policies.append(F.softmax(policy, dim=-1))
