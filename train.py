@@ -17,7 +17,7 @@ resume = None  # os.path.join('experiments', 'run-5')
 num_players = 2
 batch_size = 32
 max_segments = 16
-num_proc = 5
+num_proc = 1
 latent = 64
 
 
@@ -146,6 +146,8 @@ def main():
               for _ in range(game.num_players)]
     for agent in agents:
         agent.network.share_memory()
+        agent.network.flatten_parameters()
+        agent.old_network.flatten_parameters()
 
     del game
 
@@ -158,6 +160,7 @@ def main():
     # create discriminator
     discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5, asynchronous=True)
     discriminator.network.share_memory()
+    discriminator.network.flatten_parameters()
 
     if resume:
         path = find_latest(resume, 'discriminator_*.pt')
@@ -166,6 +169,7 @@ def main():
     # create generator
     generator = RaceTrackGenerator(latent, lr=1e-5, asynchronous=True)
     generator.network.share_memory()
+    generator.network.flatten_parameters()
 
     if resume:
         path = find_latest(resume, 'generator_*.pt')

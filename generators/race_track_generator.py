@@ -1,9 +1,8 @@
 import torch
 from torch import nn
 from torch import optim
-from torch.nn import functional as F
 
-from utils import device, Bipolar
+from utils import device
 
 
 class GeneratorNetwork(nn.Module):
@@ -34,6 +33,9 @@ class GeneratorNetwork(nn.Module):
             nn.Linear(self.rnn_size, 1),
             nn.Tanh()
         )
+
+    def flatten_parameters(self):
+        self.make_level.flatten_parameters()
 
     def forward(self, latent, num_segments, t=0.):
         # latent = [batch_size, latent_size]
