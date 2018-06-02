@@ -22,10 +22,17 @@ class PPOAgent(Agent):
         self.values = []
         self.old_policies = []
 
+        if asynchronous:
+            self.network.share_memory()
+            self.old_network.share_memory()
+        self.network.to(device)
+        self.old_network.to(device)
+
         if not asynchronous:
             self.optimizer = optim.Adam(network.parameters(), lr=lr, weight_decay=0.0001)
 
-        self.old_network.flatten_parameters()
+        # self.network.flatten_parameters()
+        # self.old_network.flatten_parameters()
 
     def async_optim(self, optimizer):
         self.optimizer = optimizer

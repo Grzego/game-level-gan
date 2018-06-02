@@ -44,13 +44,13 @@ class Race(MultiEnvironment):
         self.reward_bound = None
         self.action_speed = torch.tensor([ 0.,  # noop
                                            1.,  # forward
-                                          -1.,  # backward
+                                          -3.,  # backward
                                            0.,  # right
                                            1.,  # forward-right
-                                          -1.,  # backward-right
+                                          -3.,  # backward-right
                                            0.,  # left
                                            1.,  # forward-left
-                                          -1.,  # backward-left
+                                          -3.,  # backward-left
                                           ], device=device)
         self.action_dirs = torch.tensor([ 0.,  # noop
                                           0.,  # forward
@@ -304,7 +304,8 @@ class Race(MultiEnvironment):
 
             speed_flag = self.action_speed[actions.view(-1)].view(num_boards, -1)  # [num_boards, num_players]
             speed = self.speeds + self.framerate * speed_flag * self.cars_acceleration[None, :]
-            new_speed = torch.min(self.cars_max_speed, torch.max(self.cars_max_speed.neg(), speed))
+            # new_speed = torch.min(self.cars_max_speed, torch.max(self.cars_max_speed.neg(), speed))
+            new_speed = torch.min(self.cars_max_speed, speed.clamp(min=0.))  # with break and no backward movements
             is_moving = torch.abs(new_speed.view(-1)) > 1e-7  # [num_boards * num_players]
 
             new_pos = self.positions + new_dirs * new_speed[:, :, None]

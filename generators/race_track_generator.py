@@ -22,7 +22,11 @@ class GeneratorNetwork(nn.Module):
             nn.Linear(latent_size, self.code_size),
             nn.Tanh()
         )
-        self.make_level = nn.LSTM(self.code_size, self.rnn_size, num_layers=2)
+        # nn.LSTM(self.code_size, self.rnn_size, num_layers=2)
+        self.make_level = nn.ModuleList([
+            nn.LSTMCell(self.code_size, self.rnn_size),
+            nn.LSTMCell(self.rnn_size, self.rnn_size)
+        ])
         self.attention = nn.Sequential(
             nn.Linear(self.rnn_size, self.code_size),
             nn.Sigmoid()
@@ -50,11 +54,14 @@ class GeneratorNetwork(nn.Module):
         idea = self.unpack_idea(latent)
 
         level = []
-        state = None
+        states = [(latent.new_zeros(latent.size(0), self.rnn_size),
+                   latent.new_zeros(latent.size(0), self.rnn_size))] * len(self.make_level)
         for s in range(num_segments):
-            segment, state = self.make_level(torch.mul(idea, attention).unsqueeze(0), state)
+            flatten = torch.mul(idea, attention)
+            for i, cell in enumerate(self.make_level):
+                states[i] = cell(flatten, states[i])
+                flatten = states[i][0]
 
-            flatten = segment.squeeze(0)
             # angles = self.level_angles(flatten)
             # widths = self.level_widths(flatten)
             attention = self.attention(flatten)
@@ -78,8 +85,13 @@ class RaceTrackGenerator(object):
 
     def __init__(self, latent_size, lr=1e-4, asynchronous=False):
         self.latent_size = latent_size
-        self.network = GeneratorNetwork(latent_size).to(device)
+        self.network = GeneratorNetwork(latent_size)
         self.optimizer = None
+
+        if asynchronous:
+            self.network.share_memory()
+        self.network.to(device)
+        # self.network.flatten_parameters()
 
         if not asynchronous:
             self.optimizer = optim.Adam(self.network.parameters(), lr=lr)

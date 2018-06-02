@@ -3,7 +3,7 @@ from torch import nn
 from torch import optim
 from torch.nn import functional as F
 
-from utils import device
+from utils import device, one_hot
 
 
 class DiscriminatorNetwork(nn.Module):
@@ -12,7 +12,13 @@ class DiscriminatorNetwork(nn.Module):
 
         self.input_size = 2
         self.hidden_size = 256
-        self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=3, batch_first=True)
+        # self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=3, batch_first=True)
+        # self.features = nn.LSTM(self.input_size, self.hidden_size, num_layers=3, batch_first=True)
+        self.features = nn.ModuleList([
+            nn.LSTMCell(self.input_size, self.hidden_size),
+            nn.LSTMCell(self.hidden_size, self.hidden_size),
+            nn.LSTMCell(self.hidden_size, self.hidden_size),
+        ])
         self.prediction = nn.Sequential(
             # nn.GroupNorm(self.hidden_size // 64, self.hidden_size),
             # nn.Linear(self.hidden_size, self.hidden_size // 2),
@@ -26,8 +32,16 @@ class DiscriminatorNetwork(nn.Module):
 
     def forward(self, tracks):
         # tracks = [batch_size, num_segments, 2]
-        h, _ = self.features(tracks)
-        h = F.elu(h[:, -1, :])
+        states = [(tracks.new_zeros(tracks.size(0), self.hidden_size),
+                   tracks.new_zeros(tracks.size(0), self.hidden_size))] * len(self.features)
+        for s in range(tracks.size(1)):
+            h = tracks[:, s, :]
+            for i, cell in enumerate(self.features):
+                states[i] = cell(h, states[i])
+                h = states[i][0]
+        # h, _ = self.features(tracks)
+        # h = F.elu(h[:, -1, :])
+        h = F.elu(h)
         return self.prediction(h)
 
 
@@ -36,19 +50,23 @@ class RaceWinnerDiscriminator(object):
         self.num_players = num_players
         self.asynchronous = asynchronous
         self.lr = lr
+        self.num_players = num_players
         self.network = DiscriminatorNetwork(num_players + 1)  # +1 for invalid option
         self.optimizer = None
-        # self.stats = torch.ones(num_players + 1, device=device)
+        self.stats = None
 
         if asynchronous:
             self.network.share_memory()
         self.network.to(device)
+        # self.network.flatten_parameters()
 
         if not asynchronous:
+            # self.stats = torch.ones(num_players + 1, device=device)
             # self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
             self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
 
     def async_optim(self, optimizer):
+        # self.stats = torch.ones(self.num_players + 1, device=device)
         self.optimizer = optimizer
 
     def async_network(self, network):
@@ -64,7 +82,7 @@ class RaceWinnerDiscriminator(object):
         logits_winners = self.network(tracks)
         pred_winners = torch.argmax(logits_winners, dim=-1)
         return F.cross_entropy(logits_winners, wins), wins.eq(pred_winners).float().mean()
-        # return F.cross_entropy(prob_winners, wins, 1. / (self.stats + 0.01)), wins.eq(pred_winners).float().mean()
+        # return F.cross_entropy(logits_winners, wins, 1. / (self.stats + 0.01)), wins.eq(pred_winners).float().mean()
 
     def train(self, tracks, winners):
         loss, acc = self.loss(tracks, winners)
