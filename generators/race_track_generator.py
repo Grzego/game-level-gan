@@ -112,14 +112,20 @@ class RaceTrackGenerator(object):
         Generator wants all players to have equal chance of winning.
         Last dim means whether board was invalid, this probability should be 0.
         """
-        reverse_mask = torch.ones_like(pred_winners)
-        reverse_mask[:, 0].neg_()
+        # reverse_mask = torch.ones_like(pred_winners)
+        # reverse_mask[:, 0].neg_()
 
-        shift_mask = torch.zeros_like(pred_winners)
-        shift_mask[:, 0] = 1.
+        # shift_mask = torch.zeros_like(pred_winners)
+        # shift_mask[:, 0] = 1.
 
-        prob_wins = pred_winners * reverse_mask + shift_mask
-        loss = -torch.mean(torch.log(prob_wins + 1e-8))
+        # prob_wins = pred_winners * reverse_mask + shift_mask
+        # loss = -torch.mean(torch.log(prob_wins + 1e-8))
+
+        wanted = torch.full_like(pred_winners, 1. / (pred_winners.size(1) - 1.))
+        wanted[:, 0] = 0.
+
+        # pred_winners should be log_prob
+        loss = -torch.mean(wanted * pred_winners)
 
         self.optimizer.zero_grad()
         loss.backward()

@@ -45,6 +45,32 @@ class DiscriminatorNetwork(nn.Module):
         return self.prediction(h)
 
 
+class ConvDiscriminatorNetwork(nn.Module):
+    def __init__(self, num_players):
+        super().__init__()
+        base = 128
+        self.features = nn.Sequential(
+            nn.Conv1d(2, base, kernel_size=3, stride=1),
+            nn.ELU(),
+            nn.Conv1d(base, 2 * base, kernel_size=3, stride=2),
+            nn.ELU(),
+            nn.Conv1d(2 * base, 4 * base, kernel_size=3, stride=2),
+            nn.ELU(),
+            nn.Conv1d(4 * base, 4 * base, kernel_size=3, stride=2),
+            nn.ELU(),
+            nn.Conv1d(4 * base, 8 * base, kernel_size=3),
+            nn.ELU(),
+            nn.Conv1d(8 * base, 4 * base, kernel_size=3),
+            nn.ELU(),
+            nn.Conv1d(4 * base, num_players, kernel_size=3)
+        )
+
+    def forward(self, tracks):
+        h = tracks.permute(0, 2, 1)
+        h = self.features(h)
+        return torch.sum(h, dim=-1)
+
+
 class RaceWinnerDiscriminator(object):
     def __init__(self, num_players, lr=1e-4, asynchronous=False):
         self.num_players = num_players
@@ -73,15 +99,23 @@ class RaceWinnerDiscriminator(object):
         self.network = network
 
     def forward(self, tracks):
-        return F.softmax(self.network(tracks), dim=-1)
+        # WARNING: recently changed to log_softmax
+        return F.log_softmax(self.network(tracks), dim=-1)
+        # return F.softmax(self.network(tracks), dim=-1)
 
     def loss(self, tracks, winners):
-        wins = winners + 1
+        # WARNING: recently changed
+        # wins = winners + 1
         # self.stats = 0.9 * self.stats + 0.1 * one_hot(wins, num_classes=self.num_players + 1).float().mean(0)
 
-        logits_winners = self.network(tracks)
-        pred_winners = torch.argmax(logits_winners, dim=-1)
-        return F.cross_entropy(logits_winners, wins), wins.eq(pred_winners).float().mean()
+        log_probs = self.forward(tracks)
+        # probs = self.forward(tracks)
+        loss = torch.mean(-winners * log_probs)
+        # loss = F.mse_loss(probs, winners)
+        acc = 1. - log_probs.exp().sub(winners).abs().sum(1).mean()
+        # acc = 1. - probs.sub(winners).abs().sum(1).mean()
+        return loss, acc
+        # return F.cross_entropy(logits_winners, wins), wins.eq(pred_winners).float().mean()
         # return F.cross_entropy(logits_winners, wins, 1. / (self.stats + 0.01)), wins.eq(pred_winners).float().mean()
 
     def train(self, tracks, winners):

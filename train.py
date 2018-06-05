@@ -14,11 +14,12 @@ from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest
 
 # learned_agents = os.path.join('learned')
-resume = None  # os.path.join('experiments', 'run-5')
+resume = os.path.join('experiments', 'run-1')
+resume_segments = 128
 num_players = 2
 batch_size = 32
 max_segments = 128
-num_proc = 5
+num_proc = 4
 latent = 64
 
 
@@ -27,25 +28,25 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
     print(f'{pid:3d} -- Training started...')
 
     # setup optimizers
-    generator.async_optim(optim.SGD(generator.network.parameters(), lr=1e-5, momentum=0.5))  # dampening?
-    discriminator.async_optim(optim.SGD(discriminator.network.parameters(), lr=1e-5, momentum=0.5))
+    generator.async_optim(optim.SGD(generator.network.parameters(), lr=2e-5, momentum=0.1))  # dampening?
+    discriminator.async_optim(optim.SGD(discriminator.network.parameters(), lr=2e-4, momentum=0.3, weight_decay=0.0001))
     for agent in agents:
-        agent.async_optim(optim.Adam(agent.network.parameters(), lr=1e-5, weight_decay=0.0001))
+        agent.async_optim(optim.Adam(agent.network.parameters(), lr=1e-7, weight_decay=0.0001))  # 1e-5  default
+
+    # params
+    num_segments = 2 if not resume else resume_segments
+    finish_mean = 0.
+    episode = -1
 
     # create game
     cars = [RaceCar(max_speed=60., acceleration=2., angle=40.),
             RaceCar(max_speed=60., acceleration=1., angle=80.)]
-    game = Race(timeout=3., framerate=1. / 20., cars=cars)
-
-    # params
-    num_segments = 2
-    finish_mean = 0.
-    episode = -1
+    game = Race(timeout=3. + num_segments / 12., framerate=1. / 20., cars=cars)
 
     result = {}
     while True:
         episode += 1
-        if episode % 10 == 0:
+        if episode % 30 == 0:
             print(f'{pid:3d} -- episode {episode}')
 
         # generate boards
@@ -66,6 +67,8 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
             aloss, mean_val = a.learn()
             result[f'summary/agent_{i}/loss'] = aloss
             result[f'summary/agent_{i}/mean_val'] = mean_val
+        for a in agents:
+            a.reset()
 
         cur_mean = game.finishes.float().mean().item()
         finish_mean = 0.9 * finish_mean + 0.1 * cur_mean
@@ -161,13 +164,16 @@ def main():
     if resume:
         for i, a in enumerate(agents):
             path = find_latest(resume, 'agent_{}_*.pt'.format(i))
+            print(f'Resuming agent {i} from path "{path}"')
             a.network.load_state_dict(torch.load(path))
+            a.old_network.load_state_dict(torch.load(path))
 
     # create discriminator
     discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5, asynchronous=True)
 
     if resume:
         path = find_latest(resume, 'discriminator_*.pt')
+        print(f'Resuming discriminator from path "{path}"')
         discriminator.network.load_state_dict(torch.load(path))
 
     # create generator
@@ -175,6 +181,7 @@ def main():
 
     if resume:
         path = find_latest(resume, 'generator_*.pt')
+        print(f'Resuming generator from path "{path}"')
         generator.network.load_state_dict(torch.load(path))
 
     # train(generator, discriminator, agents, result_queue, 0, run_path)

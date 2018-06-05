@@ -95,62 +95,64 @@ class Race(MultiEnvironment):
         length = 0.2
         min_width, max_width = 0.5, 2.0
 
-        self.steps = 0
-        self.num_tracks = tracks.size(0)
-        self.history = []
+        with torch.no_grad():
+            self.steps = 0
+            self.num_tracks = tracks.size(0)
+            self.history = []
 
-        # add sentinels to tracks (0 in front and 0 in back of track for additional segment)
-        num_boards = tracks.size(0)
-        tracks = torch.cat((torch.zeros((num_boards, 1, 2), device=self.device), tracks,
-                            torch.zeros((num_boards, 1, 2), device=self.device)),
-                           dim=1)
+            # add sentinels to tracks (0 in front and 0 in back of track for additional segment)
+            num_boards = tracks.size(0)
+            tracks = torch.cat((torch.zeros((num_boards, 1, 2), device=self.device), tracks,
+                                torch.zeros((num_boards, 1, 2), device=self.device)),
+                               dim=1)
 
-        arcsum = math.radians(10.) * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
-        segment_vecs = torch.cat((torch.sin(arcsum), torch.cos(arcsum)), dim=2) * length  # each segment is 1m long
+            arcsum = math.radians(10.) * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
+            segment_vecs = torch.cat((torch.sin(arcsum), torch.cos(arcsum)), dim=2) * length  # each segment is 1m long
 
-        perp_vecs = segment_vecs.clone()
-        perp_vecs[:, :, 0], perp_vecs[:, :, 1] = segment_vecs[:, :, 1], -segment_vecs[:, :, 0]
+            perp_vecs = segment_vecs.clone()
+            perp_vecs[:, :, 0], perp_vecs[:, :, 1] = segment_vecs[:, :, 1], -segment_vecs[:, :, 0]
 
-        right_vecs = perp_vecs[:, 1:, :] + perp_vecs[:, :-1, :]
-        right_vecs /= right_vecs.norm(p=2., dim=-1, keepdim=True)
-        right_vecs *= min_width + (max_width - min_width) * tracks[:, :-1, 1:]
-        right_vecs = torch.cat((torch.zeros((num_boards, 1, 2), device=self.device), right_vecs), dim=1)
-        right_vecs[:, 0, 0] = min_width
-        left_vecs = -right_vecs
+            right_vecs = perp_vecs[:, 1:, :] + perp_vecs[:, :-1, :]
+            right_vecs /= right_vecs.norm(p=2., dim=-1, keepdim=True)
+            right_vecs *= min_width + (max_width - min_width) * tracks[:, :-1, 1:]
+            right_vecs = torch.cat((torch.zeros((num_boards, 1, 2), device=self.device), right_vecs), dim=1)
+            right_vecs[:, 0, 0] = min_width
+            left_vecs = -right_vecs
 
-        segments = torch.cumsum(segment_vecs, dim=1)
-        segments[:, 1:, :] = segments[:, :-1, :].clone()
-        segments[:, 0, :] = 0.
-        right_vecs = segments + right_vecs
-        left_vecs = segments + left_vecs
+            segments = torch.cumsum(segment_vecs, dim=1)
+            segments[:, 1:, :] = segments[:, :-1, :].clone()
+            segments[:, 0, :] = 0.
+            right_vecs = segments + right_vecs
+            left_vecs = segments + left_vecs
 
-        self.segments = segments
+            self.segments = segments
 
-        right_bounds = torch.cat((right_vecs[:, :-1, :], right_vecs[:, 1:, :]), dim=-1)
-        left_bounds = torch.cat((left_vecs[:, :-1, :], left_vecs[:, 1:, :]), dim=-1)
-        start_bounds = torch.cat((left_vecs[:, :1, :], right_vecs[:, :1, :]), dim=-1)
-        reward_line = torch.cat((left_vecs[:, -1:, :], right_vecs[:, -1:, :]), dim=-1)
-        self.reward_bound = reward_line.unsqueeze(1).repeat(1, self.num_players, 1, 1).view(-1, *reward_line.shape[-2:])
-        bounds = torch.cat((right_bounds, left_bounds, start_bounds), dim=1)
-        # [num_boards * num_players, num_segments, 4]
-        self.bounds = bounds.unsqueeze(1).repeat(1, self.num_players, 1, 1).view(-1, *bounds.shape[-2:])
+            right_bounds = torch.cat((right_vecs[:, :-1, :], right_vecs[:, 1:, :]), dim=-1)
+            left_bounds = torch.cat((left_vecs[:, :-1, :], left_vecs[:, 1:, :]), dim=-1)
+            start_bounds = torch.cat((left_vecs[:, :1, :], right_vecs[:, :1, :]), dim=-1)
+            reward_line = torch.cat((left_vecs[:, -1:, :], right_vecs[:, -1:, :]), dim=-1)
+            self.reward_bound = reward_line.unsqueeze(1).repeat(1, self.num_players, 1, 1)\
+                                                        .view(-1, *reward_line.shape[-2:])
+            bounds = torch.cat((right_bounds, left_bounds, start_bounds), dim=1)
+            # [num_boards * num_players, num_segments, 4]
+            self.bounds = bounds.unsqueeze(1).repeat(1, self.num_players, 1, 1).view(-1, *bounds.shape[-2:])
 
-        self.positions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
-        self.positions[:, :, 1] = 0.1  # 1m after a start
-        self.directions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
-        self.directions[:, :, 1] = 1.  # direction vectors should have length = 1.
-        self.speeds = torch.zeros((num_boards, self.num_players), device=self.device)
-        self.alive = torch.ones((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
-        self.scores = torch.empty((num_boards, self.num_players), dtype=torch.int32, device=self.device)
-        self.scores.fill_(self.steps_limit + 1)  # time when finished
-        self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
+            self.positions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
+            self.positions[:, :, 1] = 0.1  # 1m after a start
+            self.directions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
+            self.directions[:, :, 1] = 1.  # direction vectors should have length = 1.
+            self.speeds = torch.zeros((num_boards, self.num_players), device=self.device)
+            self.alive = torch.ones((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
+            self.scores = torch.empty((num_boards, self.num_players), dtype=torch.int32, device=self.device)
+            self.scores.fill_(self.steps_limit + 1)  # time when finished
+            self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
 
-        valid = self._is_correct(torch.cat((bounds, reward_line), dim=1))
-        self.valid = valid.view(-1, 1).repeat(1, self.num_players).view(-1).contiguous()
-        any_valid = valid.sum().item() > 0
+            valid = self._is_correct(torch.cat((bounds, reward_line), dim=1))
+            self.valid = valid.view(-1, 1).repeat(1, self.num_players).view(-1).contiguous()
+            any_valid = valid.sum().item() > 0
 
-        return self.step(torch.zeros((self.num_players, num_boards),
-                                     dtype=torch.int64, device=self.device))[0], any_valid
+            return self.step(torch.zeros((self.num_players, num_boards),
+                                         dtype=torch.int64, device=self.device))[0], any_valid
 
     @staticmethod
     def _segment_collisions(segments, tests, special=False, return_orientations=False):
@@ -381,22 +383,25 @@ class Race(MultiEnvironment):
         Rules:
           if any player finished, faster one is a winner
           if both players are dead, one that survived the longest is a winner
+
+          -1 means board was invalid
         """
-        winner = torch.zeros((self.finishes.size(0),), dtype=torch.long, device=self.device)
+        with torch.no_grad():
+            winner = torch.zeros((self.finishes.size(0),), dtype=torch.long, device=self.device)
 
-        anyone_finished = self.finishes.sum(-1) > 0
-        if torch.sum(anyone_finished) > 0:
-            finished = self.scores[anyone_finished].clone()
-            finished[~self.finishes[anyone_finished]] = self.steps_limit + 1
+            anyone_finished = self.finishes.sum(-1) > 0
+            if torch.sum(anyone_finished) > 0:
+                finished = self.scores[anyone_finished].clone()
+                finished[~self.finishes[anyone_finished]] = self.steps_limit + 1
 
-            winner[anyone_finished] = torch.argmin(finished, dim=-1)
-            if torch.sum(~anyone_finished) > 0:
-                winner[~anyone_finished] = torch.argmax(self.scores[~anyone_finished], dim=-1)
-        else:
-            winner = torch.argmax(self.scores, dim=-1)
+                winner[anyone_finished] = torch.argmin(finished, dim=-1)
+                if torch.sum(~anyone_finished) > 0:
+                    winner[~anyone_finished] = torch.argmax(self.scores[~anyone_finished], dim=-1)
+            else:
+                winner = torch.argmax(self.scores, dim=-1)
 
-        winner[~self.valid.view(-1, self.num_players)[:, 0]] = -1
-        return winner
+            winner[~self.valid.view(-1, self.num_players)[:, 0]] = -1
+            return winner
 
     def record_episode(self, filename: str):
         """
