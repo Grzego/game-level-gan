@@ -14,8 +14,10 @@ from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, device, one_hot
 
+
 # learned_agents = os.path.join('learned')
-resume = os.path.join('learned')
+resume_agents = os.path.join('learned')
+resume = os.path.join('experiments', 'run-0')
 resume_segments = 128
 num_players = 2
 batch_size = 32
@@ -36,14 +38,14 @@ def run_game(boards, winners, run_queue: mp.Queue, finish_queue: mp.Queue):
               for _ in range(game.num_players)]
 
     for i, a in enumerate(agents):
-        path = find_latest(resume, 'agent_{}_*.pt'.format(i))
+        path = find_latest(resume_agents, 'agent_{}_*.pt'.format(i))
         print(f'Resuming agent {i} from path "{path}"')
         a.network.load_state_dict(torch.load(path))
         a.old_network.load_state_dict(torch.load(path))
 
     while True:
         # wait for signal to start
-        run_queue.get(timeout=1000000.)
+        run_queue.get(timeout=100000.)
 
         states, any_valid = game.reset(boards.detach())
         game.record(random.randint(0, batch_size - 1))
@@ -58,16 +60,17 @@ def run_game(boards, winners, run_queue: mp.Queue, finish_queue: mp.Queue):
             a.reset()
 
         wins = one_hot(game.winners() + 1, num_classes=3)
-        winners.copy_(wins)
+        winners.copy_(wins.detach())
 
         # put None to signal finished eval
-        finish_queue.put(None)
+        finish_queue.put(1)
 
 
 def main():
     mp.set_start_method('spawn')
 
     manager = mp.Manager()
+
     run_queues = [manager.Queue(maxsize=1024) for _ in range(num_proc)]
     finish_queues = [manager.Queue(maxsize=1024) for _ in range(num_proc)]
 
@@ -124,21 +127,20 @@ def main():
 
             # generate boards
             gen_boards = generator.generate(num_segments, batch_size)
-
-            boards.copy_(gen_boards)
+            boards.copy_(gen_boards.detach())
             # run agents to find who wins
             for trial in range(trials):
-                run_queues[trial].put(None)
+                run_queues[trial].put(1)
 
             winner = 0.
             for trial in range(trials):
                 finish_queues[trial].get(timeout=100000.)
                 winner += winners[trial]
             winner /= trials
+            winner.detach_()
 
             # discriminator calculate loss and perform backward pass
             dloss, dacc = discriminator.train(gen_boards.detach(), winner)
-
             summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=episode)
             summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=episode)
 
@@ -163,7 +165,8 @@ def main():
             if episode % 200 == 0:
                 torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{episode}.pt'))
                 torch.save(generator.network.state_dict(), os.path.join(run_path, f'generator_{episode}.pt'))
-    except KeyboardInterrupt:
+
+    except:
         print('Terminating pool...')
         pool.terminate()
 

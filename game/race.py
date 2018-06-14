@@ -106,7 +106,7 @@ class Race(MultiEnvironment):
                                 torch.zeros((num_boards, 1, 2), device=self.device)),
                                dim=1)
 
-            arcsum = math.radians(10.) * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
+            arcsum = math.radians(8.) * torch.cumsum(tracks[:, :, :1], dim=1)  # cumsum over angles and conversion to radians
             segment_vecs = torch.cat((torch.sin(arcsum), torch.cos(arcsum)), dim=2) * length  # each segment is 1m long
 
             perp_vecs = segment_vecs.clone()

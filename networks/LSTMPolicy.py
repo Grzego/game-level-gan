@@ -27,7 +27,8 @@ class LSTMPolicy(nn.Module):
         # h = inputs.view(1, -1, self.lstm.input_size)
         if self.state is None:
             self.state = [(inputs.new_zeros(inputs.size(0), self.hidden_size),
-                           inputs.new_zeros(inputs.size(0), self.hidden_size))] * len(self.lstm)
+                           inputs.new_zeros(inputs.size(0), self.hidden_size))
+                          for _ in range(len(self.lstm))]
         h = inputs
         for i, cell in enumerate(self.lstm):
             self.state[i] = cell(h, self.state[i])

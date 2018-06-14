@@ -2,6 +2,12 @@ import torch
 from torch import nn
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+# device = torch.device('cpu')
+
+
+def change_device(dev):
+    global device
+    device = dev
 
 
 def one_hot(a, dim=-1, num_classes=None):

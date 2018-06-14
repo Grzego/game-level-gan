@@ -16,7 +16,8 @@ from agents import PPOAgent
 from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, device
 
-resume = None  # os.path.join('..', 'experiments', '009', 'run-5')
+# resume = None  # os.path.join('..', 'experiments', '009', 'run-5')
+resume = os.path.join('experiments', 'run-2')
 num_players = 2
 batch_size = 64
 
@@ -38,6 +39,8 @@ def main():
 
     with h5py.File('dataset.h5') as file:
         tracks, winners = file['tracks'][:], file['winners'][:]
+        winners = np.round(winners * 2.0) / 2.0
+
         winners = np.concatenate((np.zeros((winners.shape[0], 1), dtype=np.float32), winners), axis=1)
 
         val_tracks, val_winners = torch.tensor(tracks[-1000:]).to(device), torch.tensor(winners[-1000:]).to(device)

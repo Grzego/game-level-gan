@@ -11,16 +11,18 @@ from game import Race, RaceCar
 from agents import PPOAgent
 from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
-from utils import find_next_run_dir, find_latest
+from utils import find_next_run_dir, find_latest, one_hot
 
-# learned_agents = os.path.join('learned')
-resume = os.path.join('experiments', 'run-1')
+learned_agents = os.path.join('experiments', 'run-13')
+learned_discriminator = os.path.join('experiments', 'run-13')
+learned_generator = None  # os.path.join('experiments', 'run-8')
 resume_segments = 128
 num_players = 2
 batch_size = 32
 max_segments = 128
-num_proc = 4
-latent = 64
+num_proc = 2
+trials = 2
+latent = 4
 
 
 def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
@@ -28,13 +30,13 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
     print(f'{pid:3d} -- Training started...')
 
     # setup optimizers
-    generator.async_optim(optim.SGD(generator.network.parameters(), lr=2e-5, momentum=0.1))  # dampening?
-    discriminator.async_optim(optim.SGD(discriminator.network.parameters(), lr=2e-4, momentum=0.3, weight_decay=0.0001))
+    generator.async_optim(optim.Adam(generator.network.parameters(), lr=1e-5))  # dampening?
+    discriminator.async_optim(optim.Adam(discriminator.network.parameters(), lr=1e-5, weight_decay=0.0001))
     for agent in agents:
         agent.async_optim(optim.Adam(agent.network.parameters(), lr=1e-7, weight_decay=0.0001))  # 1e-5  default
 
     # params
-    num_segments = 2 if not resume else resume_segments
+    num_segments = 2 if not learned_agents else resume_segments
     finish_mean = 0.
     episode = -1
 
@@ -53,7 +55,8 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
         boards = generator.generate(num_segments, batch_size)
 
         # run agents to find who wins
-        states, any_valid = game.reset(boards.detach())
+        rboards = boards.detach().repeat(trials, 1, 1)
+        states, any_valid = game.reset(rboards)
         game.record(random.randint(0, batch_size - 1))
 
         while any_valid and not game.finished():
@@ -63,10 +66,10 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
                 a.observe(r)
 
         # update agent policies
-        for i, a in game.iterate_valid(agents):
-            aloss, mean_val = a.learn()
-            result[f'summary/agent_{i}/loss'] = aloss
-            result[f'summary/agent_{i}/mean_val'] = mean_val
+        # for i, a in game.iterate_valid(agents):
+        #     aloss, mean_val = a.learn()
+        #     result[f'summary/agent_{i}/loss'] = aloss
+        #     result[f'summary/agent_{i}/mean_val'] = mean_val
         for a in agents:
             a.reset()
 
@@ -83,7 +86,8 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
             print(f'{pid:3d} -- Increased number of segments to {num_segments}')
 
         # discriminator calculate loss and perform backward pass
-        winners = game.winners()
+        winners = one_hot(game.winners() + 1, num_classes=num_players + 1)
+        winners = winners.view(trials, -1, *winners.shape[1:]).float().mean(0)
         dloss, dacc = discriminator.train(boards.detach(), winners)
         result['summary/discriminator_loss'] = dloss
         result['summary/discriminator_accuracy'] = dacc
@@ -95,8 +99,8 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
 
         # log data
         for p in range(num_players):
-            result[f'summary/win_rates/player_{p}'] = (winners == p).float().mean().item()
-        result['summary/invalid'] = (winners == -1).float().mean().item()
+            result[f'summary/win_rates/player_{p}'] = winners[:, p + 1].mean().item()
+        result['summary/invalid'] = winners[:, 0].mean().item()
 
         # save episode
         if pid == 0 and episode % 20 == 0:
@@ -151,19 +155,13 @@ def main():
                        LSTMPolicy(game.state_shape()[0], game.actions),
                        lr=5e-5, discount=0.99, eps=0.1, asynchronous=True)
               for _ in range(game.num_players)]
-    # boards = torch.empty(1, 128, 2, device='cuda')
-    # boards[:, :, 0].uniform_(-1., 1.)
-    # boards[:, :, 1].zero_()
-    # game.reset(boards)
-    # game.play()
-    # return
 
     del game
 
     # load agents if resuming
-    if resume:
+    if learned_agents:
         for i, a in enumerate(agents):
-            path = find_latest(resume, 'agent_{}_*.pt'.format(i))
+            path = find_latest(learned_agents, 'agent_{}_*.pt'.format(i))
             print(f'Resuming agent {i} from path "{path}"')
             a.network.load_state_dict(torch.load(path))
             a.old_network.load_state_dict(torch.load(path))
@@ -171,16 +169,16 @@ def main():
     # create discriminator
     discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5, asynchronous=True)
 
-    if resume:
-        path = find_latest(resume, 'discriminator_*.pt')
+    if learned_discriminator:
+        path = find_latest(learned_discriminator, 'discriminator_*.pt')
         print(f'Resuming discriminator from path "{path}"')
         discriminator.network.load_state_dict(torch.load(path))
 
     # create generator
     generator = RaceTrackGenerator(latent, lr=1e-5, asynchronous=True)
 
-    if resume:
-        path = find_latest(resume, 'generator_*.pt')
+    if learned_generator:
+        path = find_latest(learned_generator, 'generator_*.pt')
         print(f'Resuming generator from path "{path}"')
         generator.network.load_state_dict(torch.load(path))
 

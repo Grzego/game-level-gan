@@ -33,7 +33,8 @@ class DiscriminatorNetwork(nn.Module):
     def forward(self, tracks):
         # tracks = [batch_size, num_segments, 2]
         states = [(tracks.new_zeros(tracks.size(0), self.hidden_size),
-                   tracks.new_zeros(tracks.size(0), self.hidden_size))] * len(self.features)
+                   tracks.new_zeros(tracks.size(0), self.hidden_size))
+                  for _ in range(len(self.features))]
         for s in range(tracks.size(1)):
             h = tracks[:, s, :]
             for i, cell in enumerate(self.features):
@@ -112,7 +113,7 @@ class RaceWinnerDiscriminator(object):
         # probs = self.forward(tracks)
         loss = torch.mean(-winners * log_probs)
         # loss = F.mse_loss(probs, winners)
-        acc = 1. - log_probs.exp().sub(winners).abs().sum(1).mean()
+        acc = log_probs.exp().sub(winners).abs().sum(1).mean()
         # acc = 1. - probs.sub(winners).abs().sum(1).mean()
         return loss, acc
         # return F.cross_entropy(logits_winners, wins), wins.eq(pred_winners).float().mean()

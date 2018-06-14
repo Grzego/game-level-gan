@@ -3,7 +3,7 @@ from torch import nn
 from torch import optim
 from torch.nn import functional as F
 
-from utils import device
+from utils import device, one_hot
 
 
 class GeneratorNetwork(nn.Module):
@@ -39,7 +39,7 @@ class GeneratorNetwork(nn.Module):
         self.angles_vars = nn.Linear(self.rnn_size, self.mixtures)
         self.angles_mix = nn.Sequential(
             nn.Linear(self.rnn_size, self.mixtures),
-            nn.Softmax(dim=-1)
+            # nn.Softmax(dim=-1)
         )
 
     def flatten_parameters(self):
@@ -55,7 +55,8 @@ class GeneratorNetwork(nn.Module):
 
         level = []
         states = [(latent.new_zeros(latent.size(0), self.rnn_size),
-                   latent.new_zeros(latent.size(0), self.rnn_size))] * len(self.make_level)
+                   latent.new_zeros(latent.size(0), self.rnn_size))
+                  for _ in range(len(self.make_level))]
         for s in range(num_segments):
             flatten = torch.mul(idea, attention)
             for i, cell in enumerate(self.make_level):
@@ -66,9 +67,9 @@ class GeneratorNetwork(nn.Module):
             # widths = self.level_widths(flatten)
             attention = self.attention(flatten)
 
-            rho = self.angles_mix(flatten)
+            rho = F.softmax(self.angles_mix(flatten), dim=-1)
             mu = torch.sum(rho * self.angles_means(flatten), dim=-1, keepdim=True)
-            sigma = torch.sum(rho * torch.exp(self.angles_vars(flatten)), dim=-1, keepdim=True)
+            sigma = torch.sum(rho * torch.exp(self.angles_vars(flatten) - t), dim=-1, keepdim=True)
 
             samples = torch.distributions.Normal(loc=mu, scale=sigma).rsample()
             angles = F.tanh(samples)
@@ -78,6 +79,53 @@ class GeneratorNetwork(nn.Module):
         return torch.stack(level, dim=1)  # [batch_size, num_segments, internal_size]
 
 
+class GeneratorNetworkDiscrete(nn.Module):
+    def __init__(self, latent_size, discrete_size):
+        super().__init__()
+
+        self.latent_size = latent_size
+        # self.noise_size = 64
+        self.input_size = 2
+        self.output_size = 2
+        self.discrete_size = discrete_size
+        self.rnn_size = 512
+        self.code_size = 512
+
+        self.unpack_idea = nn.Sequential(
+            nn.Linear(latent_size + self.input_size, self.code_size),
+            nn.Tanh()
+        )
+        self.make_level = nn.ModuleList([
+            nn.LSTMCell(self.code_size, self.rnn_size),
+            nn.LSTMCell(self.rnn_size, self.rnn_size)
+        ])
+        self.angle = nn.Linear(self.rnn_size, self.discrete_size)
+        self.space = torch.linspace(-1., 1., self.discrete_size).view(1, -1).to(device)
+
+    def forward(self, latent, num_segments, t=0.):
+        # latent = [batch_size, latent_size]
+        # coord_noise = latent.new_empty((latent.size(0), num_segments, self.output_size))
+        # coord_noise[:, :, 0].uniform_(-1., 1.)
+        # coord_noise[:, :, 1].uniform_(0., 1.)
+
+        level = [latent.new_zeros((latent.size(0), self.input_size))]
+        states = [(latent.new_zeros(latent.size(0), self.rnn_size),
+                   latent.new_zeros(latent.size(0), self.rnn_size))
+                  for _ in range(len(self.make_level))]
+        for s in range(num_segments):
+            flatten = self.unpack_idea(torch.cat((latent, level[-1]), dim=-1))
+            for i, cell in enumerate(self.make_level):
+                states[i] = cell(flatten, states[i])
+                flatten = states[i][0]
+
+            angles = torch.sum(F.gumbel_softmax(self.angle(flatten), hard=True) * self.space, dim=-1, keepdim=True)
+            # angles = torch.sum(one_hot(torch.argmax(self.angle(flatten), dim=-1), num_classes=self.discrete_size).float() * self.space,
+            #                    dim=-1, keepdim=True)
+            level.append(torch.cat((angles, torch.zeros_like(angles)), dim=-1))  # constant width for now
+
+        return torch.stack(level[1:], dim=1)  # [batch_size, num_segments, internal_size]
+
+
 class RaceTrackGenerator(object):
     """
     Generates levels for Race game.
@@ -85,6 +133,7 @@ class RaceTrackGenerator(object):
 
     def __init__(self, latent_size, lr=1e-4, asynchronous=False):
         self.latent_size = latent_size
+        # self.network = GeneratorNetworkDiscrete(latent_size, discrete_size=64)
         self.network = GeneratorNetwork(latent_size)
         self.optimizer = None
 
