@@ -8,7 +8,8 @@ from utils import device, gumbel_noise_like
 
 
 class PPOAgent(Agent):
-    def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.01, eps=0.1, asynchronous=False):
+    def __init__(self, num_actions, network, lr=1e-4, discount=0.99, beta=0.005, eps=0.1,
+                 value_eps=0.1, asynchronous=False):
         self.num_actions = num_actions
         self.network = network
         self.old_network = copy.deepcopy(self.network)
@@ -16,11 +17,13 @@ class PPOAgent(Agent):
         self.discount = discount
         self.beta = beta
         self.eps = eps
+        self.value_eps = value_eps
         self.actions = []
         self.rewards = []
         self.policies = []
         self.values = []
         self.old_policies = []
+        self.old_values = []
 
         if asynchronous:
             self.network.share_memory()
@@ -47,11 +50,12 @@ class PPOAgent(Agent):
         self.policies = []
         self.values = []
         self.old_policies = []
+        self.old_values = []
 
-    def act(self, state, deterministic=False):
+    def act(self, state, deterministic=False, training=True):
         # stop gradient to state
         policy, value = self.network(state.detach())
-        old_policy, _ = self.old_network(state.detach())
+        old_policy, old_value = self.old_network(state.detach())
 
         sq_policy = old_policy.squeeze()
         if not deterministic:
@@ -60,15 +64,18 @@ class PPOAgent(Agent):
         else:
             action = torch.argmax(sq_policy, dim=-1)
 
-        self.actions.append(action)
-        self.policies.append(F.softmax(policy, dim=-1))
-        self.values.append(value)
-        self.old_policies.append(F.softmax(old_policy, dim=-1))
+        if training:
+            self.actions.append(action)
+            self.policies.append(F.softmax(policy, dim=-1))
+            self.values.append(value)
+            self.old_policies.append(F.softmax(old_policy, dim=-1))
+            self.old_values.append(old_value)
 
         return action
 
-    def observe(self, reward):
-        self.rewards.append(reward)
+    def observe(self, reward, training=True):
+        if training:
+            self.rewards.append(reward)
 
     def learn(self, device=device):
         num_steps = len(self.rewards)
@@ -82,14 +89,17 @@ class PPOAgent(Agent):
         actions = torch.cat(self.actions).view(-1)
         policy = torch.cat(self.policies).view(-1, self.num_actions)
         value = torch.cat(self.values).view(-1)
-        old_policy = torch.cat(self.old_policies). view(-1, self.num_actions).detach()
+        old_policy = torch.cat(self.old_policies).view(-1, self.num_actions).detach()
+        old_value = torch.cat(self.old_values).view(-1).detach()
 
         indices = torch.arange(policy.size(0), dtype=torch.long)
 
         advantage = rewards - value
         ratio = policy[indices, actions] / (old_policy[indices, actions] + 1e-8)
         # MSE on rewards and values
-        loss = 0.5 * torch.mean(torch.pow(advantage, 2.))
+        clipped_values = old_value + torch.clamp(value - old_value, -self.eps, self.eps)
+        loss = 0.5 * torch.mean(torch.pow(clipped_values - rewards, 2.))
+        # loss = 0.5 * torch.mean(torch.pow(torch.clamp(advantage, -self.value_eps, self.value_eps), 2.))
         # clipped surrogate objective
         loss += torch.mean(torch.min(-ratio * advantage.detach(),
                                      -torch.clamp(ratio, 1. - self.eps, 1. + self.eps) * advantage.detach()))

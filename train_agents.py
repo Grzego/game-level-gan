@@ -13,17 +13,17 @@ from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, one_hot
 
-learned_agents = os.path.join('learned')
-learned_discriminator = os.path.join('experiments', 'run-11')
-learned_generator = os.path.join('experiments', 'run-2')
+learned_agents = os.path.join('experiments', 'run-16')
+learned_discriminator = os.path.join('experiments', 'run-16')
+learned_generator = os.path.join('experiments', 'run-16')
 resume_segments = 128
 num_players = 2
-batch_size = 32
+batch_size = 16
 max_segments = 128
-num_proc = 2
-trials = 2
-# latent = 4
-latent = 64
+num_proc = 4
+trials = 1
+latent = 4
+# latent = 64
 
 
 def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
@@ -34,7 +34,7 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
     generator.async_optim(optim.Adam(generator.network.parameters(), lr=1e-5))  # dampening?
     discriminator.async_optim(optim.Adam(discriminator.network.parameters(), lr=1e-5, weight_decay=0.0001))
     for agent in agents:
-        agent.async_optim(optim.Adam(agent.network.parameters(), lr=1e-6, weight_decay=0.0001))  # 1e-5  default
+        agent.async_optim(optim.Adam(agent.network.parameters(), lr=3e-6, weight_decay=0.0001))  # 1e-5  default
 
     # params
     num_segments = 2 if not learned_agents else resume_segments
@@ -90,9 +90,9 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
         # discriminator calculate loss and perform backward pass
         winners = one_hot(game.winners() + 1, num_classes=num_players + 1)
         winners = winners.view(trials, -1, *winners.shape[1:]).float().mean(0)
-        dloss, dacc = discriminator.train(boards.detach(), winners)
-        result['summary/discriminator_loss'] = dloss
-        result['summary/discriminator_accuracy'] = dacc
+        # dloss, dacc = discriminator.train(boards.detach(), winners)
+        # result['summary/discriminator_loss'] = dloss
+        # result['summary/discriminator_accuracy'] = dacc
 
         # train generator
         # pred_winners = discriminator.forward(boards)
@@ -113,8 +113,8 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
 
         # save networks
         if pid == 0 and episode % 200 == 0:
-            torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{episode}.pt'))
-            torch.save(generator.network.state_dict(), os.path.join(run_path, f'generator_{episode}.pt'))
+            # torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{episode}.pt'))
+            # torch.save(generator.network.state_dict(), os.path.join(run_path, f'generator_{episode}.pt'))
             for i, a in enumerate(agents):
                 torch.save(a.network.state_dict(), os.path.join(run_path, f'agent_{i}_{episode}.pt'))
 

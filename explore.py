@@ -15,10 +15,10 @@ from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, one_hot, device
 
 
-resume = os.path.join('experiments', 'run-10')
+resume = os.path.join('..', 'experiments', '013', 'run-4')
 num_players = 2
 num_segments = 128
-latent = 4
+latent = 8
 
 
 class GUI(pyforms.BaseWidget):
@@ -53,7 +53,7 @@ class GUI(pyforms.BaseWidget):
             for i in range(latent):
                 self.noise[0, i] = float(self.__dict__[f'_slider_{i}'].value) / 1000.
 
-            self.board = generator.network(self.noise, num_segments, t=1.).detach_()
+            self.board = generator.network(self.noise, num_segments, t=1.)[0].detach_()
 
             game.reset(self.board)
             self._board.value = game.tracks_images(top_n=1)[0]
@@ -100,18 +100,18 @@ def main():
             a.old_network.load_state_dict(torch.load(path))
 
     # create discriminator
-    discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5, asynchronous=True)
+    # discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5, asynchronous=True)
 
-    if resume:
-        path = find_latest(resume, 'discriminator_*.pt')
-        print(f'Resuming discriminator from path "{path}"')
-        discriminator.network.load_state_dict(torch.load(path))
+    # if resume:
+    #     path = find_latest(resume, 'discriminator_*.pt')
+    #     print(f'Resuming discriminator from path "{path}"')
+    #     discriminator.network.load_state_dict(torch.load(path))
 
     # create generator
     generator = RaceTrackGenerator(latent, lr=1e-5, asynchronous=True)
 
     if resume:
-        path = find_latest(resume, 'generator_*.pt')
+        path = find_latest(resume, 'generator_[0-9]*.pt')
         print(f'Resuming generator from path "{path}"')
         generator.network.load_state_dict(torch.load(path))
 

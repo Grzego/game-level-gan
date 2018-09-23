@@ -15,6 +15,74 @@ class GeneratorNetwork(nn.Module):
         self.input_size = 2
         self.output_size = 2
         self.rnn_size = 512
+        self.code_size = 512
+        self.mixtures = 5
+
+        self.unpack_idea = nn.Sequential(
+            nn.Linear(latent_size, self.code_size),
+            nn.Tanh()
+        )
+        # nn.LSTM(self.code_size, self.rnn_size, num_layers=2)
+        self.make_level = nn.ModuleList([
+            nn.LSTMCell(self.code_size + self.input_size, self.rnn_size),
+            nn.LSTMCell(self.rnn_size, self.rnn_size)
+        ])
+        # self.attention = nn.Sequential(
+        #     nn.Linear(self.rnn_size, self.code_size),
+        #     nn.Sigmoid()
+        # )
+        # self.level_widths = nn.Sequential(
+        #     nn.Linear(self.rnn_size, 1),
+        #     nn.Sigmoid()
+        # )
+        self.angles_means = nn.Linear(self.rnn_size, self.mixtures)
+        self.angles_vars = nn.Linear(self.rnn_size, self.mixtures)
+        self.angles_mix = nn.Sequential(
+            nn.Linear(self.rnn_size, self.mixtures),
+            # nn.Softmax(dim=-1)
+        )
+
+    def flatten_parameters(self):
+        self.make_level.flatten_parameters()
+
+    def forward(self, latent, num_segments, t=0.):
+        # latent = [batch_size, latent_size]
+        # coord_noise = latent.new_empty((latent.size(0), num_segments, self.output_size))
+        # coord_noise[:, :, 0].uniform_(-1., 1.)
+        # coord_noise[:, :, 1].uniform_(0., 1.)
+        idea = self.unpack_idea(latent)
+
+        level = [latent.new_zeros(latent.size(0), self.input_size)]
+        states = [(latent.new_zeros(latent.size(0), self.rnn_size),
+                   latent.new_zeros(latent.size(0), self.rnn_size))
+                  for _ in range(len(self.make_level))]
+        for s in range(num_segments):
+            flatten = torch.cat((idea, level[-1]), dim=-1)
+            for i, cell in enumerate(self.make_level):
+                states[i] = cell(flatten, states[i])
+                flatten = states[i][0]
+
+            rho = F.softmax(self.angles_mix(flatten), dim=-1)
+            mu = torch.sum(rho * self.angles_means(flatten), dim=-1, keepdim=True)
+            sigma = torch.sum(rho * torch.exp(self.angles_vars(flatten) - t), dim=-1, keepdim=True)
+
+            samples = torch.distributions.Normal(loc=mu, scale=sigma).rsample()
+            angles = F.tanh(samples)
+
+            level.append(torch.cat((angles, torch.zeros_like(angles)), dim=-1))  # constant width for now
+
+        return torch.stack(level[1:], dim=1), None  # [batch_size, num_segments, internal_size]
+
+
+class GeneratorNetworkAttention(nn.Module):
+    def __init__(self, latent_size):
+        super().__init__()
+
+        self.latent_size = latent_size
+        # self.noise_size = 64
+        self.input_size = 2
+        self.output_size = 2
+        self.rnn_size = 512
         self.code_size = 2048
         self.mixtures = 5
 
@@ -76,7 +144,7 @@ class GeneratorNetwork(nn.Module):
 
             level.append(torch.cat((angles, torch.zeros_like(angles)), dim=-1))  # constant width for now
 
-        return torch.stack(level, dim=1)  # [batch_size, num_segments, internal_size]
+        return torch.stack(level, dim=1), None  # [batch_size, num_segments, internal_size]
 
 
 class GeneratorNetworkDiscrete(nn.Module):
@@ -112,18 +180,81 @@ class GeneratorNetworkDiscrete(nn.Module):
         states = [(latent.new_zeros(latent.size(0), self.rnn_size),
                    latent.new_zeros(latent.size(0), self.rnn_size))
                   for _ in range(len(self.make_level))]
+
+        entropy_loss = 0.
+
         for s in range(num_segments):
             flatten = self.unpack_idea(torch.cat((latent, level[-1]), dim=-1))
             for i, cell in enumerate(self.make_level):
                 states[i] = cell(flatten, states[i])
                 flatten = states[i][0]
 
-            angles = torch.sum(F.gumbel_softmax(self.angle(flatten), hard=True) * self.space, dim=-1, keepdim=True)
+            angle_logits = self.angle(flatten)
+
+            angle_log_prob = F.log_softmax(angle_logits, dim=-1)
+            entropy_loss += torch.sum(angle_log_prob.exp() * angle_log_prob, dim=-1)
+
+            angles = torch.sum(F.gumbel_softmax(angle_logits, hard=True) * self.space, dim=-1, keepdim=True)
             # angles = torch.sum(one_hot(torch.argmax(self.angle(flatten), dim=-1), num_classes=self.discrete_size).float() * self.space,
             #                    dim=-1, keepdim=True)
             level.append(torch.cat((angles, torch.zeros_like(angles)), dim=-1))  # constant width for now
 
-        return torch.stack(level[1:], dim=1)  # [batch_size, num_segments, internal_size]
+        return torch.stack(level[1:], dim=1), entropy_loss.mean() / num_segments  # [batch_size, num_segments, internal_size]
+
+
+class GeneratorNetworkConvDiscrete(nn.Module):
+    def __init__(self, latent_size, discrete_size, max_segments=128):
+        super().__init__()
+
+        self.latent_size = latent_size
+        # self.noise_size = 64
+        self.input_size = 2
+        self.output_size = 2
+        self.discrete_size = discrete_size
+        self.code_size = 512
+
+        self.unpack_idea = nn.Sequential(
+            nn.Linear(latent_size, 8 * self.code_size),
+            nn.Tanh()
+        )
+        self.make_level = nn.Sequential(
+            nn.ConvTranspose1d(self.code_size, self.code_size, kernel_size=5, stride=2, padding=2),  # 15
+            nn.ELU(),
+            nn.ConvTranspose1d(self.code_size, self.code_size // 2, kernel_size=3, stride=2, padding=1),  # 29
+            nn.ELU(),
+            nn.ConvTranspose1d(self.code_size // 2, self.code_size // 4, kernel_size=3, stride=2, padding=1),  # 57
+            nn.ELU(),
+            nn.ConvTranspose1d(self.code_size // 4, self.code_size // 4, kernel_size=3, stride=2, padding=1),  # 113
+            nn.ELU(),
+            nn.ConvTranspose1d(self.code_size // 4, self.code_size // 8, kernel_size=3, stride=2, padding=1),  # 225
+            nn.ELU(),
+            nn.ConvTranspose1d(self.code_size // 8, self.discrete_size, kernel_size=3, stride=1, padding=1),  # 225
+        )
+        self.space = torch.linspace(-1., 1., self.discrete_size).view(1, -1).to(device)
+
+    def forward(self, latent, num_segments, t=0.):
+        # latent = [batch_size, latent_size]
+
+        batch_size = latent.size(0)
+
+        idea = self.unpack_idea(latent)  # [batch_size, 8 * code_size]
+        h = idea.view(-1, self.code_size, 8)
+        h = self.make_level(h)  # [batch_size, 64, 225]
+
+        h = h[:, :, :num_segments].permute(0, 2, 1)  # [batch_size, num_segments, 64]
+
+        # log_prob = F.log_softmax(h, dim=-1).view(-1, self.discrete_size)
+        # entropy = torch.mean(torch.sum(log_prob.exp() * log_prob, dim=-1))
+
+        h = F.gumbel_softmax(h.contiguous().view(-1, self.discrete_size)) * self.space
+        h = torch.sum(h, dim=-1).view(batch_size, -1, 1)
+
+        # we want to maximize this (more diversity between generated tracks
+        # this sould be in range [0., 1.]
+        aux_loss = 0.5 * torch.mean(torch.abs(h[None, :, :, 0] - h[:, None, :, 0]), dim=-1)  # [batch_size, batch_size]
+        aux_loss = torch.sum(aux_loss) / (batch_size * (batch_size - 1) / 8.)  # scale loss properly
+
+        return torch.cat((h, torch.zeros_like(h)), dim=-1), -aux_loss  # entropy
 
 
 class RaceTrackGenerator(object):
@@ -134,8 +265,12 @@ class RaceTrackGenerator(object):
     def __init__(self, latent_size, lr=1e-4, asynchronous=False):
         self.latent_size = latent_size
         # self.network = GeneratorNetworkDiscrete(latent_size, discrete_size=64)
-        self.network = GeneratorNetwork(latent_size)
+        # self.network = GeneratorNetworkConvDiscrete(latent_size, discrete_size=64)
+        self.network = GeneratorNetworkConvDiscrete(latent_size, discrete_size=9)
+        # self.network = GeneratorNetwork(latent_size)
+        # self.network = GeneratorNetworkAttention(latent_size)
         self.optimizer = None
+        self.auxiliary_loss = None
 
         if asynchronous:
             self.network.share_memory()
@@ -154,9 +289,10 @@ class RaceTrackGenerator(object):
         Track is a sequence of shape [num_samples, track_length, (arc, width)].
         """
         noise = torch.randn((num_samples, self.latent_size), device=device)
-        return self.network(noise, track_length, t)
+        boards, self.auxiliary_loss = self.network(noise, track_length, t)
+        return boards
 
-    def train(self, pred_winners):
+    def train(self, pred_winners, beta=0.001):
         """
         Generator wants all players to have equal chance of winning.
         Last dim means whether board was invalid, this probability should be 0.
@@ -176,11 +312,14 @@ class RaceTrackGenerator(object):
         # pred_winners should be log_prob
         loss = -torch.mean(wanted * pred_winners)
 
+        if self.auxiliary_loss:
+            loss += beta * self.auxiliary_loss
+
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        return loss.item()
+        return loss.item(), beta * self.auxiliary_loss.item() if self.auxiliary_loss is not None else None
 
     @property
     def track_shape(self):

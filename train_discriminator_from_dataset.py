@@ -17,9 +17,10 @@ from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, device
 
 # resume = None  # os.path.join('..', 'experiments', '009', 'run-5')
-resume = os.path.join('experiments', 'run-2')
+resume = None  # os.path.join('experiments', 'run-4')
 num_players = 2
 batch_size = 64
+trials = 2
 
 
 def main():
@@ -27,19 +28,24 @@ def main():
     run_path = find_next_run_dir('experiments')
 
     discriminator = RaceWinnerDiscriminator(num_players, lr=1e-4, asynchronous=True)
-    discriminator.async_optim(optim.Adam(discriminator.network.parameters(), lr=1e-4))
-    scheduler = lr_scheduler.ReduceLROnPlateau(discriminator.optimizer, patience=10, factor=0.1,
+    discriminator.async_optim(optim.Adam(discriminator.network.parameters(), lr=1e-5))
+    scheduler = lr_scheduler.ReduceLROnPlateau(discriminator.optimizer, patience=10, factor=0.5,
                                                min_lr=1e-6, verbose=True)
     # discriminator = RaceWinnerDiscriminator(num_players, lr=1e-5)
 
     if resume:
-        path = find_latest(resume, 'discriminator_*.pt')
+        path = find_latest(resume, 'discriminator_[0-9]*.pt')
         print(f'Resuming discriminator from path "{path}"')
         discriminator.network.load_state_dict(torch.load(path))
+        # path = find_latest(resume, 'discriminator_opt_*.pt')
+        # print(f'Resuming discriminator optimizer from path "{path}"')
+        # discriminator.optimizer.load_state_dict(torch.load(path))
 
-    with h5py.File('dataset.h5') as file:
+    with h5py.File('dataset-3.h5') as file:
         tracks, winners = file['tracks'][:], file['winners'][:]
-        winners = np.round(winners * 2.0) / 2.0
+        # winners = np.round(winners * 2.0) / 2.0
+        shuffle = np.random.permutation(len(tracks))
+        tracks, winners = tracks[shuffle], winners[shuffle]
 
         winners = np.concatenate((np.zeros((winners.shape[0], 1), dtype=np.float32), winners), axis=1)
 
@@ -52,6 +58,7 @@ def main():
     summary_writer = SummaryWriter(os.path.join(run_path, 'summary'))
 
     epoch = 0
+    hist_step = 0
     while True:
         print(f'Epoch {epoch:5d}', flush=True)
 
@@ -59,17 +66,23 @@ def main():
         for i, (tr, win) in enumerate(dataloader):
             step += tr.size(0)
             # print(f'\r[{step:5d}/{len(dataset):5d}]', end='')
-            dloss, dacc = discriminator.train(tr.to(device), win.to(device))
+            dloss, dacc = discriminator.train(tr.to(device), win.to(device), trials)
             summary_writer.add_scalar('summary/discriminator_loss', dloss, global_step=epoch * len(dataset) + step)
             summary_writer.add_scalar('summary/discriminator_accuracy', dacc, global_step=epoch * len(dataset) + step)
+
+            if hist_step % 20 == 0:
+                for name, param in discriminator.network.named_parameters():
+                    summary_writer.add_histogram(f'summary/{name}', param, global_step=epoch * len(dataset) + step,
+                                                 bins='auto')
+            hist_step += 1
 
         if epoch % 10 == 0:
             torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{epoch}.pt'))
 
         with torch.no_grad():
-            val_loss, val_acc = discriminator.loss(val_tracks, val_winners)
-            summary_writer.add_scalar('summary/validation/discriminator_loss', val_loss, global_step=epoch)
-            summary_writer.add_scalar('summary/validation/discriminator_accuracy', val_acc, global_step=epoch)
+            val_loss, val_acc = discriminator.loss(val_tracks, val_winners, trials)
+            summary_writer.add_scalar('validation/discriminator_loss', val_loss, global_step=epoch)
+            summary_writer.add_scalar('validation/discriminator_accuracy', val_acc, global_step=epoch)
             scheduler.step(val_loss, epoch=epoch)
 
         epoch += 1

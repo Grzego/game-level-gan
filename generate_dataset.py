@@ -16,26 +16,26 @@ from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest
 
 # learned_agents = os.path.join('learned')
-resume = os.path.join('experiments', 'run-5')
+resume = os.path.join('experiments', 'run-4')
 dataset_size = 50000
 num_players = 2
-batch_size = 512
+batch_size = 500
 max_segments = 128
 num_proc = 4
-latent = 64
+latent = 8
 trials = 10
 
 
 def main():
-    print('-- Eval started...')
+    print('-- Generating dataset started...')
 
     # params
     num_segments = max_segments
 
     # create game
-    cars = [RaceCar(max_speed=60., acceleration=2., angle=40.),
-            RaceCar(max_speed=60., acceleration=1., angle=80.)]
-    game = Race(timeout=3. + num_segments / 8., framerate=1. / 20., cars=cars)
+    cars = [RaceCar(max_speed=60., acceleration=4., angle=60.),
+            RaceCar(max_speed=60., acceleration=2., angle=90.)]
+    game = Race(timeout=3. + num_segments / 20., framerate=1. / 20., cars=cars)
 
     # create agents
     agents = [PPOAgent(game.actions,
@@ -56,14 +56,14 @@ def main():
     generator = RaceTrackGenerator(latent, lr=1e-5, asynchronous=True)
 
     if resume:
-        path = find_latest(resume, 'generator_*.pt')
+        path = find_latest(resume, 'generator_[0-9]*.pt')
         print(f'Resuming generator from path "{path}"')
         generator.network.load_state_dict(torch.load(path))
 
     time.clock()
 
     # create dataset
-    with h5py.File('dataset.h5', 'w') as file:
+    with h5py.File('dataset-4.h5', 'w') as file:
         tracks = file.create_dataset('tracks', shape=(0, 128, 2), maxshape=(None, 128, 2), dtype=np.float32)
         winners = file.create_dataset('winners', shape=(0, 2), maxshape=(None, 2), dtype=np.float32)
 
@@ -78,9 +78,9 @@ def main():
                 not_invalid = None
                 wins = 0
                 # run agents to find who wins
+                eta = (time.clock() * (dataset_size - tracks.shape[0])) / (tracks.shape[0] + 1e-8)
                 for trial in range(1, trials + 1):
-                    eta = (time.clock() * (dataset_size - tracks.shape[0])) / (tracks.shape[0] + 1e-8)
-                    print(f'\rSize: {tracks.shape[0]:6d}; trial: {trial:2d}; eta: {eta:20.3f}', end='')
+                    print(f'Size: {tracks.shape[0]:6d}; trial: {trial:2d}; eta: {eta:20.3f}')
                     states, any_valid = game.reset(boards.detach())
 
                     while any_valid and not game.finished():
@@ -98,14 +98,33 @@ def main():
 
                 wins /= trials
 
-                # append to dataset
-                chunk = np.sum(not_invalid)
-                if chunk > 0:
-                    tracks.resize(tracks.shape[0] + chunk, axis=0)
-                    winners.resize(winners.shape[0] + chunk, axis=0)
+                pl1 = wins[:, 0] >= 0.8  # player1 wins
+                pl2 = wins[:, 1] >= 0.8  # player2 wins
 
-                    tracks[-chunk:] = boards.cpu().numpy()[not_invalid]
-                    winners[-chunk:] = wins[not_invalid, :2]
+                print(f'Stats: {np.mean(pl1):5.4} {np.mean(pl2):5.4} {1. - np.mean(pl1) - np.mean(pl2):5.4}')
+
+                low_win = int(min(np.sum(pl1), np.sum(pl2)))
+                if low_win > 0:
+                    boards_cpu = boards.cpu().numpy()
+                    boards_to_save = np.concatenate((boards_cpu[pl1, :, :][:low_win, :, :],
+                                                     boards_cpu[pl2, :, :][:low_win, :, :]), axis=0)
+                    wins_to_save = np.concatenate((wins[pl1, :][:low_win, :2],
+                                                   wins[pl2, :][:low_win, :2]), axis=0)
+
+                    tracks.resize(tracks.shape[0] + low_win * 2, axis=0)
+                    winners.resize(winners.shape[0] + low_win * 2, axis=0)
+
+                    tracks[-low_win * 2:] = boards_to_save
+                    winners[-low_win * 2:] = wins_to_save
+
+                # # append to dataset
+                # chunk = np.sum(not_invalid)
+                # if chunk > 0:
+                #     tracks.resize(tracks.shape[0] + chunk, axis=0)
+                #     winners.resize(winners.shape[0] + chunk, axis=0)
+                #
+                #     tracks[-chunk:] = boards.cpu().numpy()[not_invalid]
+                #     winners[-chunk:] = wins[not_invalid, :2]
 
 
 if __name__ == '__main__':

@@ -10,19 +10,19 @@ from generators import RaceTrackGenerator
 from networks import LSTMPolicy, RaceWinnerDiscriminator
 from utils import find_next_run_dir, find_latest, device
 
-learned_agents = os.path.join('learned')
-learned_discriminator = os.path.join('learned')
+learned_agents = os.path.join('..', 'experiments', '013', 'run-4')
+learned_discriminator = os.path.join('experiments', 'run-14')
 
 
 def main():
     # board, size, num_players = Pacman.from_str(DEFAULT_BOARD)
 
-    latent, num_players = 64, 2
+    latent, num_players = 8, 2
     track_generator = RaceTrackGenerator(latent, lr=1e-5)
 
     # create game
     batch_size = 64
-    num_segments = 16
+    num_segments = 128
     # cars = [RaceCar(max_speed=60., acceleration=2., angle=60.),
     #         RaceCar(max_speed=60., acceleration=1., angle=90.)]
     # game = Race(timeout=3. + num_segments / 1.5, framerate=1. / 20., cars=cars)
@@ -46,7 +46,7 @@ def main():
     #     a.network.load_state_dict(torch.load(path))
     #     epoch = int(path.split('_')[-1].split('.')[0])
 
-    disc_path = find_latest(learned_discriminator, 'discriminator_*.pt')
+    disc_path = find_latest(learned_discriminator, 'discriminator_[0-9]*.pt')
     discriminator.network.load_state_dict(torch.load(disc_path))
 
     print('Starting learning...')
@@ -98,9 +98,10 @@ def main():
         # summary_writer.add_scalar('summary/invalid', (winners == -1).float().mean(), global_step=e)
 
         pred_winners = discriminator.forward(boards)
-        gloss = track_generator.train(pred_winners)
-
+        gloss, galoss = track_generator.train(pred_winners)
         summary_writer.add_scalar('summary/generator_loss', gloss, global_step=e)
+        if galoss:
+            summary_writer.add_scalar('summary/generator_aux_loss', galoss, global_step=e)
 
         if e % 500 == 0:
             cars = [RaceCar(max_speed=60., acceleration=2., angle=60.),
@@ -112,7 +113,7 @@ def main():
                 summary_writer.add_image('summary/boards_{}'.format(i), img, global_step=e)
 
         if e % 10000 == 0:
-            torch.save(track_generator.generator.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
+            torch.save(track_generator.network.state_dict(), os.path.join(run_path, 'generator_{}.pt'.format(e)))
 
 
 if __name__ == '__main__':
