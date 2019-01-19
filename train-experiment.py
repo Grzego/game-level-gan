@@ -16,18 +16,18 @@ from utils import find_next_run_dir, find_latest, one_hot, device
 
 # learned_agents = None  # os.path.join('..', 'experiments', '013', 'run-4')
 # learned_agents = os.path.join('..', 'experiments', '015', 'run-2')
-learned_agents = os.path.join('experiments', 'run-3')  # os.path.join('learned')
-learned_discriminator = os.path.join('experiments', 'run-5')
+learned_agents = os.path.join('learned')
+learned_discriminator = None  # os.path.join('experiments', 'run-5')
 # learned_discriminator = os.path.join('experiments', 'run-6')
-learned_generator = os.path.join('experiments', 'run-5')
+learned_generator = None  # os.path.join('experiments', 'run-5')
 # learned_generator = os.path.join('experiments', 'run-3')
 resume_segments = 128
 # resume_segments = 128
 num_players = 2
-batch_size = 32 - 6
+batch_size = 32
 # batch_size = 32 - 4 * 6
 max_segments = 128
-num_proc = 2
+num_proc = 1
 trials = 6
 # trials = 1
 latent = 16
@@ -118,13 +118,13 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
         generator.network.cuda()
 
     # setup optimizers
-    generator.async_optim(optim.Adam(generator.network.parameters(), lr=1e-6))  # dampening?
+    generator.async_optim(optim.Adam(generator.network.parameters(), lr=1e-5, betas=(0.3, 0.9)))  # dampening?
     if learned_generator:
         path = find_latest(learned_generator, 'generator_opt_[0-9]*.pt')
         print(f'Resuming generator optimizer from path "{path}"')
         generator.optimizer.load_state_dict(torch.load(path))
 
-    discriminator.async_optim(optim.Adam(discriminator.network.parameters(), lr=2e-6))
+    discriminator.async_optim(optim.Adam(discriminator.network.parameters(), lr=2e-5, betas=(0.5, 0.9)))
     if learned_discriminator:
         path = find_latest(learned_discriminator, 'discriminator_opt_[0-9]*.pt')
         print(f'Resuming discriminator optimizer from path "{path}"')
@@ -157,7 +157,7 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
 
         # --training generator - generate boards
         boards = generator.generate(num_segments, batch_size).detach()
-        boards = torch.cat((boards, predefined_tracks()), dim=0)
+        # boards = torch.cat((boards, predefined_tracks()), dim=0)
 
         # -- training agents
         # boards = torch.zeros(batch_size, num_segments, 2, device=device)

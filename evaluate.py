@@ -19,13 +19,14 @@ from utils import find_next_run_dir, find_latest, one_hot, device
 
 
 # resume = os.path.join('..', 'experiments', '013', 'run-4')
-resume = os.path.join('learned')
+resume_agents = os.path.join('learned')
+resume_generator = os.path.join('experiments', 'run-0')
 # resume = os.path.join('experiments', 'run-11')
 num_players = 2
 num_segments = 128
 latent = 16
 eval_size = 1000
-trials = 10
+trials = 20
 
 
 def main():
@@ -43,9 +44,9 @@ def main():
               for _ in range(game.num_players)]
 
     # load agents if resuming
-    if resume:
+    if resume_agents:
         for i, a in enumerate(agents):
-            path = find_latest(resume, 'agent_{}_*.pt'.format(i))
+            path = find_latest(resume_agents, 'agent_{}_*.pt'.format(i))
             print(f'Resuming agent {i} from path "{path}"')
             a.network.load_state_dict(torch.load(path))
             a.old_network.load_state_dict(torch.load(path))
@@ -65,8 +66,8 @@ def main():
     # create generator
     generator = RaceTrackGenerator(latent, lr=1e-5, asynchronous=True)
 
-    if resume:
-        path = find_latest(resume, 'generator_[0-9]*.pt')
+    if resume_generator:
+        path = find_latest(resume_generator, 'generator_[0-9]*.pt')
         print(f'Resuming generator from path "{path}"')
         generator.network.load_state_dict(torch.load(path))
 
@@ -120,7 +121,7 @@ def main():
         random_winners = 0.
         for t in range(trials):
             states, any_valid = game.reset(random_boards)
-            # game.record(0)
+            game.record(0)
             print(f'[{t + 1:2d}/{trials:2d}] Random boards eval...')
             step = 0
             while any_valid and not game.finished():
@@ -144,12 +145,14 @@ def main():
         print(random_winners.float().std(0))
 
         plt.subplot(1, 2, 1)
-        plt.hist(random_winners[:, 1].float().cpu().numpy(), bins=trials + 1, label='player 1')
+        plt.hist(random_winners[:, 1].float().cpu().numpy(), bins=trials + 1, range=(0, 1), label='player 1')
+        plt.legend()
         plt.xlim(0., 1.)
         plt.subplot(1, 2, 2)
-        plt.hist(random_winners[:, 2].float().cpu().numpy(), bins=trials + 1, label='player 2')
+        plt.hist(random_winners[:, 2].float().cpu().numpy(), bins=trials + 1, range=(0, 1), label='player 2')
         plt.xlim(0., 1.)
         # plt.show()
+        plt.legend()
         plt.savefig('random.png')
         plt.close()
 
@@ -181,12 +184,14 @@ def main():
         print(generated_winners.float().std(0))
 
         plt.subplot(1, 2, 1)
-        plt.hist(generated_winners[:, 1].float().cpu().numpy(), bins=trials + 1, label='player 1')
+        plt.hist(generated_winners[:, 1].float().cpu().numpy(), bins=trials + 1, range=(0, 1),label='player 1')
+        plt.legend()
         plt.xlim(0., 1.)
         plt.subplot(1, 2, 2)
-        plt.hist(generated_winners[:, 2].float().cpu().numpy(), bins=trials + 1, label='player 2')
+        plt.hist(generated_winners[:, 2].float().cpu().numpy(), bins=trials + 1, range=(0, 1), label='player 2')
         plt.xlim(0., 1.)
         # plt.show()
+        plt.legend()
         plt.savefig('dummy.png')
         plt.close()
 
@@ -217,12 +222,14 @@ def main():
         print(generated_winners.float().std(0))
 
         plt.subplot(1, 2, 1)
-        plt.hist(generated_winners[:, 1].float().cpu().numpy(), bins=trials + 1, label='player 1')
+        plt.hist(generated_winners[:, 1].float().cpu().numpy(), bins=trials + 1, range=(0, 1), label='player 1')
+        plt.legend()
         plt.xlim(0., 1.)
         plt.subplot(1, 2, 2)
-        plt.hist(generated_winners[:, 2].float().cpu().numpy(), bins=trials + 1, label='player 2')
+        plt.hist(generated_winners[:, 2].float().cpu().numpy(), bins=trials + 1, range=(0, 1), label='player 2')
         plt.xlim(0., 1.)
         # plt.show()
+        plt.legend()
         plt.savefig('generated.png')
         plt.close()
 
