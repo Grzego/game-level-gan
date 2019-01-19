@@ -88,7 +88,7 @@ class RaceWinnerDiscriminator(object):
         if asynchronous:
             self.network.share_memory()
         self.network.to(device)
-        # self.network.flatten_parameters()
+        # seasync_optimlf.network.flatten_parameters()
 
         if not asynchronous:
             # self.stats = torch.ones(num_players + 1, device=device)
