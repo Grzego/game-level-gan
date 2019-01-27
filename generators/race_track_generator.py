@@ -246,7 +246,10 @@ class GeneratorNetworkConvDiscrete(nn.Module):
         # log_prob = F.log_softmax(h, dim=-1).view(-1, self.discrete_size)
         # entropy = torch.mean(torch.sum(log_prob.exp() * log_prob, dim=-1))
 
-        h = F.gumbel_softmax(h.contiguous().view(-1, self.discrete_size)) * self.space
+        if t > 1.:
+            h = F.softmax(h.contiguous().view(-1, self.discrete_size) * t) * self.space
+        else:
+            h = F.gumbel_softmax(h.contiguous().view(-1, self.discrete_size), hard=True) * self.space
         h = torch.sum(h, dim=-1).view(batch_size, -1, 1)
 
         # we want to maximize this (more diversity between generated tracks

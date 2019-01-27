@@ -155,6 +155,9 @@ class Race(MultiEnvironment):
             self.line_bounds = line_bounds.unsqueeze(1).repeat(1, self.num_players, 1, 1)\
                 .view(-1, *line_bounds.shape[-2:]).cpu()
 
+            self.left_bounds = left_bounds
+            self.right_bounds = right_bounds
+
             self.positions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
             self.positions[:, :, 1] = 0.1  # 1m after a start
             self.directions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
@@ -633,6 +636,139 @@ class Race(MultiEnvironment):
             fx1, fy1, fx2, fy2 = reward_bound[i * self.num_players, 0, :]
             cv2.line(imgs[i], (_move_x(fx1), _move_y(fy1)), (_move_x(fx2), _move_y(fy2)), (170, 0, 0, 0),
                      thickness=3, lineType=cv2.LINE_AA)
+
+        return imgs
+
+    def prettier_tracks(self, top_n=3, size=1024, pad=0.05):
+        import cv2
+        import numpy as np
+
+        imgs = 255 * np.ones((top_n, size, size, 4), dtype=np.uint8)
+        imgs[:, :, :, 3] = 0
+
+        for i in range(top_n):
+            mins, _ = torch.min(self.bounds[i * self.num_players, :, :].view(-1, 2), dim=0)
+            maxs, _ = torch.max(self.bounds[i * self.num_players, :, :].view(-1, 2), dim=0)
+            # mins, _ = torch.tensor([-20., -20.]), 0
+            # maxs, _ = torch.tensor([ 20.,  20.]), 0
+
+            longer = torch.max(maxs - mins).item()
+            shift = 0.5 * (1. - (maxs - mins) / longer)
+            minx, miny = mins.tolist()
+            shiftx, shifty = shift.tolist()
+
+            def _move_x(x):
+                return int(pad * size + (1. - 2. * pad) * size * ((x - minx) / longer + shiftx))
+
+            def _move_y(y):
+                return size - int(pad * size + (1. - 2. * pad) * size * ((y - miny) / longer + shifty))
+
+            def _move_xy(xy):
+                return (_move_x(xy[0]), _move_y(xy[1])), (_move_x(xy[2]), _move_y(xy[3]))
+
+            for j, (l, p) in enumerate(zip(self.left_bounds[i, ...], self.right_bounds[i, ...])):
+                l_1, l_2 = _move_xy(l)
+                p_1, p_2 = _move_xy(p)
+
+                cv2.fillConvexPoly(imgs[i], np.array([l_1, l_2, p_2, p_1]),
+                                   (70, 70, 70, 255) if (j // 5) % 2 == 0 else (50, 50, 50, 255),
+                                   lineType=cv2.LINE_AA)
+
+            # draw every segment of first track
+            for x1, y1, x2, y2 in self.bounds[i * self.num_players, :, :]:
+                cv2.line(imgs[i], (_move_x(x1), _move_y(y1)), (_move_x(x2), _move_y(y2)), (5, 5, 5, 255),
+                         thickness=1, lineType=cv2.LINE_AA)
+
+            f1, f2 = _move_xy(self.reward_bound[i * self.num_players, 0, :])
+            fl, fr = np.array(f1), np.array(f2)
+            perp = (np.array([fl[1] - fr[1], -(fl[0] - fr[0])]) * 0.2).astype(np.int32)
+
+            x_steps, y_steps = 2, 7
+            xx_step, yy_step = perp / x_steps, (fr - fl) / y_steps
+
+            for xx in range(x_steps):
+                for yy in range(y_steps):
+                    p = fl + xx * xx_step + yy * yy_step
+
+                    cv2.fillConvexPoly(imgs[i], np.stack((p, p + xx_step, p + yy_step + xx_step, p + yy_step)).astype(np.int32),
+                                       (20, 20, 20, 255) if (xx % 2 == 0) == (yy % 2 == 0) else (210, 210, 210, 255),
+                                       lineType=cv2.LINE_AA)
+
+            # cv2.line(imgs[i], (_move_x(fx1), _move_y(fy1)), (_move_x(fx2), _move_y(fy2)), (0, 0, 145, 255),
+            #          thickness=1, lineType=cv2.LINE_AA)
+
+        return imgs
+
+    def prettier_tracks_svg(self, top_n=3, size=1024, pad=0.05):
+        import numpy as np
+        import svgwrite as svg
+
+        imgs = [svg.Drawing(shape_rendering="crispEdges") for _ in range(top_n)]
+
+        for i in range(top_n):
+            mins, _ = torch.min(self.bounds[i * self.num_players, :, :].view(-1, 2), dim=0)
+            maxs, _ = torch.max(self.bounds[i * self.num_players, :, :].view(-1, 2), dim=0)
+            # mins, _ = torch.tensor([-20., -20.]), 0
+            # maxs, _ = torch.tensor([ 20.,  20.]), 0
+
+            longer = torch.max(maxs - mins).item()
+            shift = 0.5 * (1. - (maxs - mins) / longer)
+            minx, miny = mins.tolist()
+            shiftx, shifty = shift.tolist()
+
+            def _move_x(x):
+                return float(pad * size + (1. - 2. * pad) * size * ((x - minx) / longer + shiftx))
+
+            def _move_y(y):
+                return float(size - (pad * size + (1. - 2. * pad) * size * ((y - miny) / longer + shifty)))
+
+            def _move_xy(xy):
+                return (_move_x(xy[0]), _move_y(xy[1])), (_move_x(xy[2]), _move_y(xy[3]))
+
+            def _norm(v):
+                return v / np.sqrt(np.sum(v**2.))
+
+            def _adjust(points):
+                l1, l2, p2, p1 = np.array(points)
+                r = p2 - l2
+                u = l2 - l1
+                l1 += _norm(-r - u) * 0.01 * size
+                l2 += _norm(-r + u) * 0.01 * size
+                p2 += _norm( r + u) * 0.01 * size
+                p1 += _norm( r - u) * 0.01 * size
+                return [x.tolist() for x in (l1, l2, p2, p1)]
+
+            for j, (l, p) in enumerate(zip(self.left_bounds[i, ...], self.right_bounds[i, ...])):
+                l_1, l_2 = _move_xy(l)
+                p_1, p_2 = _move_xy(p)
+
+                imgs[i].add(imgs[i].polygon(points=_adjust([l_1, l_2, p_2, p_1]),
+                                            fill=svg.rgb(70, 70, 70) if (j // 5) % 2 == 0 else svg.rgb(50, 50, 50)))
+
+            # draw every segment of first track
+            # for x1, y1, x2, y2 in self.bounds[i * self.num_players, :, :]:
+            #     imgs[i].add(imgs[i].line((_move_x(x1), _move_y(y1)), (_move_x(x2), _move_y(y2)),
+            #                 style='stroke:rgb(5, 5, 5, 255), stroke-width:1'))
+
+            f1, f2 = _move_xy(self.reward_bound[i * self.num_players, 0, :])
+            fl, fr = np.array(f1), np.array(f2)
+            r = _norm(fr - fl) * 0.01 * size
+            fl -= r
+            fr += r
+            perp = (np.array([fl[1] - fr[1], -(fl[0] - fr[0])]) * 0.22).astype(np.int32)
+
+            x_steps, y_steps = 2, 7
+            xx_step, yy_step = perp / x_steps, (fr - fl) / y_steps
+
+            for xx in range(x_steps):
+                for yy in range(y_steps):
+                    p = fl + xx * xx_step + yy * yy_step
+                    points = np.stack((p, p + xx_step, p + yy_step + xx_step, p + yy_step)).tolist()
+                    imgs[i].add(imgs[i].polygon(points=points,
+                                                fill=svg.rgb(20, 20, 20) if (xx % 2 == 0) == (yy % 2 == 0) else svg.rgb(210, 210, 210)))
+
+            # cv2.line(imgs[i], (_move_x(fx1), _move_y(fy1)), (_move_x(fx2), _move_y(fy2)), (0, 0, 145, 255),
+            #          thickness=1, lineType=cv2.LINE_AA)
 
         return imgs
 
