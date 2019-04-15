@@ -246,8 +246,8 @@ class GeneratorNetworkConvDiscrete(nn.Module):
         # log_prob = F.log_softmax(h, dim=-1).view(-1, self.discrete_size)
         # entropy = torch.mean(torch.sum(log_prob.exp() * log_prob, dim=-1))
 
-        if t > 1.:
-            h = F.softmax(h.contiguous().view(-1, self.discrete_size) * t) * self.space
+        if t > 0.:
+            h = F.softmax(h.contiguous().view(-1, self.discrete_size) * t, dim=-1) * self.space
         else:
             h = F.gumbel_softmax(h.contiguous().view(-1, self.discrete_size), hard=True) * self.space
         h = torch.sum(h, dim=-1).view(batch_size, -1, 1)
@@ -286,12 +286,13 @@ class RaceTrackGenerator(object):
     def async_optim(self, optimizer):
         self.optimizer = optimizer
 
-    def generate(self, track_length, num_samples=1, t=0.):
+    def generate(self, track_length, num_samples=1, t=0., noise=None):
         """
         From random vector generate multiple samples of tracks with `track_length`.
         Track is a sequence of shape [num_samples, track_length, (arc, width)].
         """
-        noise = torch.randn((num_samples, self.latent_size), device=device)
+        if noise is None:
+            noise = torch.randn((num_samples, self.latent_size), device=device)
         boards, self.auxiliary_loss = self.network(noise, track_length, t)
         return boards
 
