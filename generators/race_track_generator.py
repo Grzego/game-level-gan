@@ -195,7 +195,8 @@ class GeneratorNetworkDiscrete(nn.Module):
             entropy_loss += torch.sum(angle_log_prob.exp() * angle_log_prob, dim=-1)
 
             angles = torch.sum(F.gumbel_softmax(angle_logits, hard=True) * self.space, dim=-1, keepdim=True)
-            # angles = torch.sum(one_hot(torch.argmax(self.angle(flatten), dim=-1), num_classes=self.discrete_size).float() * self.space,
+            # angles = torch.sum(one_hot(torch.argmax(self.angle(flatten), dim=-1),
+            #                            num_classes=self.discrete_size).float() * self.space,
             #                    dim=-1, keepdim=True)
             level.append(torch.cat((angles, torch.zeros_like(angles)), dim=-1))  # constant width for now
 

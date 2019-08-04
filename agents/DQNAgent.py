@@ -17,7 +17,7 @@ class DQNAgent(Agent):
     def act(self, state):
         action = self.network(state)
         self.states.append(state)
-        # TODO: all
+        # TODO: implement
 
     def observe(self, reward):
         # TODO: implement

@@ -470,7 +470,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
 
 /*
 
-    SHITTY CODE! DO NOT USE! (maybe I will try to make it correct later...)
+    CODE WITH VERY SILLY MISTAKE! DO NOT USE! (maybe I will try to make it correct later...)
 
 */
 

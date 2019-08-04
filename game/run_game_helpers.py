@@ -3,7 +3,8 @@ from torch.utils import cpp_extension as ext
 
 
 def main():
-    game = ext.load('game', sources=['game_helpers.cpp'], extra_cflags=['-O3', '-DNDEBUG', '-fopenmp'],
+    game = ext.load('game', sources=['game_helpers.cpp'],
+                    extra_cflags=['-O3', '-DNDEBUG', '-fopenmp'],
                     extra_ldflags=['-lpthread'])
 
     valid_left = torch.zeros(2, 4, 2)

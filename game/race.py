@@ -19,6 +19,10 @@ class RaceCar(object):
 
 
 class Race(MultiEnvironment):
+    IMPL_BOOST = 0
+    IMPL_GPU = 1
+    IMPL_CPP = 2
+
     def __init__(self, timeout, cars: [RaceCar], observation_size=18, max_distance=10., framerate=1. / 30.,
                  log_history=True, device=device):
         # 1unit = 10m
@@ -74,10 +78,21 @@ class Race(MultiEnvironment):
 
         self.line_bounds = None
         self.game_handle = None
-        self.game_helpers = ext.load('game_helpers',
-                                     sources=['game/game_helpers.cpp'],
-                                     extra_cflags=['-DNDEBUG', '-O3', '-fopenmp'],
-                                     extra_ldflags=['-lpthread'])
+
+        self._impl_version = Race.IMPL_CPP
+
+        try:
+            self.game_helpers = ext.load('game_helpers',
+                                         sources=['game/game_helpers.cpp'],
+                                         extra_cflags=['-DNDEBUG', '-O3', '-fopenmp'],
+                                         extra_ldflags=['-lpthread'])
+        except RuntimeError as e:
+            import codecs
+            print(codecs.decode(e.args[0], 'unicode-escape'))
+            print('*****************************************************')
+            print('!!! Fallbacking to default PyTorch implementation !!!')
+            print('*****************************************************')
+            self._impl_version = Race.IMPL_GPU
 
     def state_shape(self):
         return self.observation_size + 2,  # +1 for speed, (+1 for progress -- REMOVED)
@@ -169,16 +184,19 @@ class Race(MultiEnvironment):
             self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
 
             # -- boost version
-            # valid = torch.empty(num_boards, dtype=torch.uint8)
-            # self.game_helpers.is_valid(line_bounds.cpu(), valid)
-            # valid = valid.to(device)
+            if self._impl_version == Race.IMPL_BOOST:
+                valid = torch.empty(num_boards, dtype=torch.uint8)
+                self.game_helpers.is_valid(line_bounds.cpu(), valid)
+                valid = valid.to(device)
 
             # -- brute-force version on GPU
-            # valid = self._is_correct(torch.cat((bounds, reward_line), dim=1))
+            elif self._impl_version == Race.IMPL_GPU:
+                valid = self._is_correct(torch.cat((bounds, reward_line), dim=1))
 
             # -- fully in C++
-            self.game_handle = self.game_helpers.Game(self.left_vecs.cpu(), self.right_vecs.cpu(), self.num_players)
-            valid = self.game_handle.validate_tracks().to(device)
+            elif self._impl_version == Race.IMPL_CPP:
+                self.game_handle = self.game_helpers.Game(self.left_vecs.cpu(), self.right_vecs.cpu(), self.num_players)
+                valid = self.game_handle.validate_tracks().to(device)
 
             self.valid = valid.view(-1, 1).repeat(1, self.num_players).view(-1).contiguous()
             any_valid = valid.sum().item() > 0
@@ -362,25 +380,30 @@ class Race(MultiEnvironment):
                 # check collisions
 
                 # -- boost & GPU versions
-                # paths = torch.cat((self.positions, new_pos), dim=-1).view(-1, 1, 4)  # [num_boards * num_players, 1, 4]
+                if self._impl_version == Race.IMPL_BOOST or self._impl_version == Race.IMPL_GPU:
+                    paths = torch.cat((self.positions, new_pos), dim=-1).view(-1, 1, 4)  # [num_boards * num_players, 1, 4]
 
                 # -- C++ version
-                paths = torch.cat((self.positions, new_pos), dim=-1).view(-1, 4)  # [num_boards * num_players, 1, 4]
+                elif self._impl_version == Race.IMPL_CPP:
+                    paths = torch.cat((self.positions, new_pos), dim=-1).view(-1, 4)  # [num_boards * num_players, 1, 4]
 
                 # -- boost version
-                # is_dead = torch.empty(update_mask.numel(), 1, dtype=torch.uint8)
-                # self.game_helpers.collision(self.line_bounds[update_mask],
-                #                             paths[update_mask].cpu(),
-                #                             is_dead)
-                # is_dead = is_dead.to(device).squeeze(-1)
+                if self._impl_version == Race.IMPL_BOOST:
+                    is_dead = torch.empty(update_mask.numel(), 1, dtype=torch.uint8)
+                    self.game_helpers.collision(self.line_bounds[update_mask],
+                                                paths[update_mask].cpu(),
+                                                is_dead)
+                    is_dead = is_dead.to(device).squeeze(-1)
 
                 # -- brute-force version on GPU
-                # seg_col = self._segment_collisions(self.bounds[update_mask], paths[update_mask])
-                # is_dead = seg_col.squeeze(dim=-1).max(dim=1)[0]
+                elif self._impl_version == Race.IMPL_GPU:
+                    seg_col = self._segment_collisions(self.bounds[update_mask], paths[update_mask])
+                    is_dead = seg_col.squeeze(dim=-1).max(dim=1)[0]
 
                 # -- fully in C++
-                is_dead_cpu, is_done_cpu = self.game_handle.update_players(update_mask.cpu(), paths[update_mask].cpu())
-                is_dead, is_done = is_dead_cpu.to(device), is_done_cpu.to(device)
+                elif self._impl_version == Race.IMPL_CPP:
+                    is_dead_cpu, is_done_cpu = self.game_handle.update_players(update_mask.cpu(), paths[update_mask].cpu())
+                    is_dead, is_done = is_dead_cpu.to(device), is_done_cpu.to(device)
 
                 self.alive.view(-1)[update_mask] &= ~is_dead
 
@@ -390,15 +413,17 @@ class Race(MultiEnvironment):
                 # small negative otherwise to encourage finishing race faster
 
                 # -- boost version
-                # is_done = torch.empty(update_mask.numel(), 1, dtype=torch.uint8)
-                # self.game_helpers.collision(self.reward_bound[update_mask].cpu().view(-1, 2, 2),
-                #                             paths[update_mask].cpu(),
-                #                             is_done)
-                # is_done = is_done.to(device).squeeze(-1)
+                if self._impl_version == Race.IMPL_BOOST:
+                    is_done = torch.empty(update_mask.numel(), 1, dtype=torch.uint8)
+                    self.game_helpers.collision(self.reward_bound[update_mask].cpu().view(-1, 2, 2),
+                                                paths[update_mask].cpu(),
+                                                is_done)
+                    is_done = is_done.to(device).squeeze(-1)
 
                 # -- brute-force version on GPU
-                # finish = self._segment_collisions(self.reward_bound[update_mask], paths[update_mask])
-                # is_done = torch.max(finish.view(update_mask.size(0), -1), dim=-1)[0]
+                elif self._impl_version == Race.IMPL_GPU:
+                    finish = self._segment_collisions(self.reward_bound[update_mask], paths[update_mask])
+                    is_done = torch.max(finish.view(update_mask.size(0), -1), dim=-1)[0]
 
                 rewards[update_mask] += is_done.float() - is_dead.float()
                 self.alive.view(-1)[update_mask] &= ~is_done
@@ -439,25 +464,28 @@ class Race(MultiEnvironment):
                 obs_segm = torch.cat((obs_segm, obs_dirs), dim=-1)
 
                 # -- boost version
-                # alive_states = torch.empty(alive_mask.numel(), self.observation_size, dtype=torch.float)
-                # self.game_helpers.smallest_distance(self.line_bounds[alive_mask].cpu(),
-                #                                     obs_segm[alive_mask].cpu(),
-                #                                     alive_states)
-                # alive_states = alive_states.to(device)
+                if self._impl_version == Race.IMPL_BOOST:
+                    alive_states = torch.empty(alive_mask.numel(), self.observation_size, dtype=torch.float)
+                    self.game_helpers.smallest_distance(self.line_bounds[alive_mask].cpu(),
+                                                        obs_segm[alive_mask].cpu(),
+                                                        alive_states)
+                    alive_states = alive_states.to(device)
 
                 # -- brute-force version on GPU
-                # alive_states = self._smallest_distance(self.bounds[alive_mask], obs_segm[alive_mask])
+                elif self._impl_version == Race.IMPL_GPU:
+                    alive_states = self._smallest_distance(self.bounds[alive_mask], obs_segm[alive_mask])
 
                 # -- fully in C++
-                alive_states = self.game_handle.smallest_distance(alive_mask.cpu(),
-                                                                  obs_segm[alive_mask].cpu()).to(device)
+                elif self._impl_version == Race.IMPL_CPP:
+                    alive_states = self.game_handle.smallest_distance(alive_mask.cpu(),
+                                                                      obs_segm[alive_mask].cpu()).to(device)
 
                 states[alive_mask] = alive_states.clamp(max=self.max_distance) / self.max_distance
 
             # record history
             if self.log_history:
                 self.history.append((self.positions[self.record_id].tolist(), self.directions[self.record_id].tolist(),
-                                     actions[self.record_id].tolist()))
+                                     actions[self.record_id].tolist(), self.alive[self.record_id].tolist()))
 
             states = torch.cat((states.view(num_boards, self.num_players, -1),
                                 self.speeds[:, :, None] / self.cars_max_speed[None, :, None],
@@ -509,7 +537,7 @@ class Race(MultiEnvironment):
 
         import os
         import cv2
-        import moviepy.editor as mpy
+        # import moviepy.editor as mpy
         import numpy as np
 
         width, height = 640, 480
@@ -528,8 +556,13 @@ class Race(MultiEnvironment):
 
         bounds = self.bounds
         reward_bound = self.reward_bound
+        cut = None
 
-        for frame, (positions, directions, actions) in enumerate(self.history):
+        for frame, (positions, directions, actions, alive) in enumerate(self.history):
+            if not any(alive):
+                cut = frame
+                break
+
             for player, (position, direction, action) in enumerate(zip(positions, directions, actions)):
                 # center on player
                 px, py = position
@@ -587,13 +620,23 @@ class Race(MultiEnvironment):
                     cv2.arrowedLine(record[player, frame], (40, height - 40), offset,
                                     (0, 0, 0, 0), thickness=3, line_type=cv2.LINE_AA)
 
-        record = np.concatenate(list(record), axis=-2)
+        record = np.concatenate(list(record), axis=-2)[:cut]
+        record = record[..., ::-1]  # because OpenCV...
 
         basepath, _ = os.path.split(filename)
         if basepath:
             os.makedirs(basepath, exist_ok=True)
-        clip = mpy.ImageSequenceClip(list(record), fps=int(1. / self.framerate))
-        clip.write_videofile(filename + '.mp4', audio=False, verbose=False)
+        # clip = mpy.ImageSequenceClip(list(record), fps=int(1. / self.framerate))
+        # clip.write_videofile(filename + '.mp4', audio=False, verbose=False)
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        clip = cv2.VideoWriter(filename + '.mp4', fourcc, 1. / self.framerate, (width * self.num_players, height))
+        print()
+        print('Saving clip: "{}"'.format(filename + '.mp4'))
+        for i, frame in enumerate(record):
+            print('\r[{:5d}/{:5d}]'.format(i + 1, len(record)), end='')
+            clip.write(frame)
+        print('... done.')
+        clip.release()
         del clip
 
     def tracks_images(self, top_n=3):
@@ -877,3 +920,15 @@ class Race(MultiEnvironment):
         return ('noop', 'forward', 'backward',
                 'right', 'forward-right', 'backward-right',
                 'left', 'forward-left', 'backward-left')[a]
+
+
+# ---------------------------------------------------------
+# Default params for cars across experiments
+# ---------------------------------------------------------
+
+
+cars = [RaceCar(max_speed=60., acceleration=4., angle=40.),
+        RaceCar(max_speed=60., acceleration=1., angle=80.)]
+
+
+game = Race(timeout=40., framerate=1. / 20., cars=cars)

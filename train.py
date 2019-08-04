@@ -258,7 +258,7 @@ def train(generator: RaceTrackGenerator, discriminator: RaceWinnerDiscriminator,
             for i, img in enumerate(game.tracks_images(top_n=batch_size)):
                 result[f'game/boards_{i}'] = np.transpose(img, axes=(2, 0, 1))
 
-        # save networks
+        # save policies
         if pid == 0 and episode % 500 == 0:
             torch.save(discriminator.network.state_dict(), os.path.join(run_path, f'discriminator_{episode}.pt'))
             torch.save(discriminator.optimizer.state_dict(), os.path.join(run_path, f'discriminator_opt_{episode}.pt'))

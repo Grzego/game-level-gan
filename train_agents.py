@@ -10,7 +10,8 @@ from tensorboardX import SummaryWriter
 from game import Race, RaceCar
 from agents import PPOAgent
 from generators import RaceTrackGenerator
-from networks import LSTMPolicy, RaceWinnerDiscriminator
+from discriminators import RaceWinnerDiscriminator
+from policies import LSTMPolicy
 from utils import find_next_run_dir, find_latest, one_hot
 
 learned_agents = os.path.join('experiments', 'run-16')

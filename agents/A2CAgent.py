@@ -33,7 +33,7 @@ class A2CAgent(Agent):
         policy, value = self.network(state.detach())
 
         sq_policy = policy.squeeze(0)
-        gumbel = gumbel_noise(sq_policy.shape)
+        gumbel = gumbel_noise_like(sq_policy.shape)
         action = torch.argmax(sq_policy + gumbel, dim=-1)
 
         self.states.append(state)
