@@ -266,7 +266,7 @@ class RaceTrackGenerator(object):
     Generates levels for Race game.
     """
 
-    def __init__(self, latent_size, lr=1e-4, asynchronous=False):
+    def __init__(self, latent_size, lr=1e-4, betas=(0.9, 0.999), asynchronous=False):
         self.latent_size = latent_size
         # self.network = GeneratorNetworkDiscrete(latent_size, discrete_size=64)
         # self.network = GeneratorNetworkConvDiscrete(latent_size, discrete_size=64)
@@ -282,7 +282,7 @@ class RaceTrackGenerator(object):
         # self.network.flatten_parameters()
 
         if not asynchronous:
-            self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
+            self.optimizer = optim.Adam(self.network.parameters(), lr=lr, betas=betas)
 
     def async_optim(self, optimizer):
         self.optimizer = optimizer
@@ -329,3 +329,14 @@ class RaceTrackGenerator(object):
     @property
     def track_shape(self):
         return 2,
+
+    def save(self, path):
+        torch.save({
+            'network': self.network,
+            'optimizer': self.optimizer
+        }, path)
+
+    def load(self, path):
+        data = torch.load(path)
+        self.network.load_state_dict(data['network'])
+        self.optimizer.load_state_dict(data['optimizer'])

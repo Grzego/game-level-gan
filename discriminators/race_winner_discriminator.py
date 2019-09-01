@@ -75,7 +75,7 @@ class ConvDiscriminatorNetwork(nn.Module):
 
 
 class RaceWinnerDiscriminator(object):
-    def __init__(self, num_players, lr=1e-4, asynchronous=False):
+    def __init__(self, num_players, lr=1e-4, betas=(0.9, 0.999), asynchronous=False):
         self.num_players = num_players
         self.asynchronous = asynchronous
         self.lr = lr
@@ -88,12 +88,10 @@ class RaceWinnerDiscriminator(object):
         if asynchronous:
             self.network.share_memory()
         self.network.to(device)
-        # seasync_optimlf.network.flatten_parameters()
 
         if not asynchronous:
             # self.stats = torch.ones(num_players + 1, device=device)
-            # self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
-            self.optimizer = optim.Adam(self.network.parameters(), lr=lr)
+            self.optimizer = optim.Adam(self.network.parameters(), lr=lr, betas=betas)
 
     def async_optim(self, optimizer):
         # self.stats = torch.ones(self.num_players + 1, device=device)
@@ -134,3 +132,14 @@ class RaceWinnerDiscriminator(object):
         self.optimizer.step()
 
         return loss.item(), acc
+
+    def save(self, path):
+        torch.save({
+            'network': self.network,
+            'optimizer': self.optimizer
+        }, path)
+
+    def load(self, path):
+        data = torch.load(path)
+        self.network.load_state_dict(data['network'])
+        self.optimizer.load_state_dict(data['optimizer'])

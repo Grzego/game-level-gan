@@ -102,9 +102,6 @@ def main():
         # save episode
         if episode % 100 == 0:
             game.record_episode(os.path.join(run_path, 'videos', f'episode_{episode}'))
-            # save boards as images in tensorboard
-            for i, img in enumerate(game.tracks_images(top_n=args.batch_size)):
-                result[f'game/boards_{i}'] = np.transpose(img, axes=(2, 0, 1))
 
         # save networks
         if episode % 500 == 0:
