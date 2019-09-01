@@ -135,8 +135,8 @@ class RaceWinnerDiscriminator(object):
 
     def save(self, path):
         torch.save({
-            'network': self.network,
-            'optimizer': self.optimizer
+            'network': self.network.state_dict(),
+            'optimizer': self.optimizer.state_dict()
         }, path)
 
     def load(self, path):

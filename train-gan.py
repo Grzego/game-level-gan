@@ -19,7 +19,7 @@ parser.add_argument('--batch-size', default=32, type=int)
 parser.add_argument('--resume-path', default=None, type=str)  # default='learned'
 parser.add_argument('--trials', default=6, type=int,
                     help='Number of times we simulate game to determine a winner.')
-parser.add_argument('--agents', default='learned', type=str,
+parser.add_argument('--agents', default='learned', type=str, required=True,
                     help='Path to trained agents.')
 parser.add_argument('--latent', default=16, type=int,
                     help='Dimensionality of latent vector.')
@@ -35,6 +35,7 @@ def main():
     print(f'Running experiment {run_path}')
 
     episode = 0
+    finish_mean = 0.
 
     # create agents with LSTM policy network
     agents = [PPOAgent(game.actions,
@@ -67,6 +68,7 @@ def main():
         print(f'Resuming params from path "{path}"')
         params = torch.load(path)
         episode = params['episode']
+        finish_mean = params['finish_mean']
 
     summary_writer = SummaryWriter(os.path.join(run_path, 'summary'), purge_step=episode)
     result = {}
@@ -108,7 +110,7 @@ def main():
         for _ in range(args.generator_train_steps):
             generated = generator.generate(RaceConfig.max_segments, args.generator_batch_size)
             pred_winners = discriminator.forward(generated)
-            gloss, galoss = generator.train(pred_winners, args.beta)
+            gloss, galoss = generator.train(pred_winners, args.generator_beta)
             result['generator/loss'] = gloss
             if galoss:
                 result['generator/aux_loss'] = galoss
@@ -130,7 +132,8 @@ def main():
             discriminator.save(os.path.join(run_path, f'discriminator_{episode}.pt'))
             generator.save(os.path.join(run_path, f'generator_{episode}.pt'))
             torch.save({
-                'episode': episode
+                'episode': episode,
+                'finish_mean': finish_mean
             }, os.path.join(run_path, f'params_{episode}.pt'))
 
         # save data to tensorboard
