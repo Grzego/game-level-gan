@@ -44,7 +44,7 @@ def main():
 
     # load agents if resuming
     for i, a in enumerate(agents):
-        path = find_latest(args.agents, 'agent_{}_*.pt'.format(i))
+        path = find_latest(args.agents, f'agent_{i}_*.pt')
         print(f'Resuming agent {i} from path "{path}"')
         a.load(path)
 
@@ -63,7 +63,9 @@ def main():
         print(f'Resuming generator from path "{path}"')
         generator.load(path)
 
-        params = torch.load(find_latest(args.resume_path, 'params_[0-9]*.pt'))
+        path = find_latest(args.resume_path, 'params_*.pt')
+        print(f'Resuming params from path "{path}"')
+        params = torch.load(path)
         episode = params['episode']
 
     summary_writer = SummaryWriter(os.path.join(run_path, 'summary'), purge_step=episode)
@@ -120,7 +122,6 @@ def main():
         if episode % 100 == 0:
             game.record_episode(os.path.join(run_path, 'videos', f'episode_{episode}'))
             # save boards as images in tensorboard
-            # for i, img in enumerate(game.tracks_images(top_n=batch_size + 4 * 6)):
             for i, img in enumerate(game.tracks_images(top_n=args.batch_size)):
                 result[f'game/boards_{i}'] = np.transpose(img, axes=(2, 0, 1))
 
@@ -128,6 +129,9 @@ def main():
         if episode % 500 == 0:
             discriminator.save(os.path.join(run_path, f'discriminator_{episode}.pt'))
             generator.save(os.path.join(run_path, f'generator_{episode}.pt'))
+            torch.save({
+                'episode': episode
+            }, os.path.join(run_path, f'params_{episode}.pt'))
 
         # save data to tensorboard
         for tag, data in result.items():

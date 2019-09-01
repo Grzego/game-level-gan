@@ -39,10 +39,12 @@ def main():
     # load agents if resuming
     if args.resume_path:
         for i, a in enumerate(agents):
-            path = find_latest(args.resume_path, 'agent_{}_*.pt'.format(i))
+            path = find_latest(args.resume_path, f'agent_{i}_*.pt')
             print(f'Resuming agent {i} from path "{path}"')
             a.load(path)
-        params = torch.load(find_latest(args.resume_path, 'params_*.pt'))
+        path = find_latest(args.resume_path, 'params_*.pt')
+        print(f'Resuming params from path "{path}"')
+        params = torch.load(path)
         finish_mean = params['finish_mean']
         num_segments = params['num_segments']
         episode = params['episode']
