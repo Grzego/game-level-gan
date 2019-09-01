@@ -26,3 +26,17 @@ class Agent(object):
         to learn from gathered data.
         """
         pass
+
+    @abc.abstractmethod
+    def save(self, path):
+        """
+        Saves agent parameters.
+        """
+        pass
+
+    @abc.abstractmethod
+    def load(self, path):
+        """
+        Loads agent parameters.
+        """
+        pass

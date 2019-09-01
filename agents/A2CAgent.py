@@ -73,3 +73,9 @@ class A2CAgent(Agent):
         self.reset()
 
         return loss.item(), torch.mean(value).item()
+
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass

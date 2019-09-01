@@ -26,3 +26,9 @@ class DQNAgent(Agent):
     def learn(self):
         # TODO: implement
         pass
+
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass

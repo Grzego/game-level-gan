@@ -26,7 +26,7 @@ def one_hot(a, dim=-1, num_classes=None):
 
 def gumbel_noise_like(tensor):
     """
-    Requires `a` to be values before applying softmax.
+    Requires `temsor` to be values before applying softmax.
     """
     gumbel = torch.empty_like(tensor)
     gumbel.uniform_()

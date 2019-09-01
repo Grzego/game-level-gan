@@ -112,3 +112,15 @@ class PPOAgent(Agent):
         self.reset()
 
         return loss.item(), torch.mean(value).item()
+
+    def save(self, path):
+        torch.save({
+            'network': self.network.state_dict(),
+            'optimizer': self.optimizer.state_dict()
+        }, path)
+
+    def load(self, path):
+        data = torch.load(path)
+        self.network.load_state_dict(data['network'])
+        self.old_network = copy.deepcopy(self.network)
+        self.optimizer.load_state_dict(data['optimizer'])
