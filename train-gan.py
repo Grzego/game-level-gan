@@ -10,7 +10,7 @@ from agents import PPOAgent
 from generators import RaceTrackGenerator
 from discriminators import RaceWinnerDiscriminator
 from policies import LSTMPolicy
-from utils import find_next_run_dir, find_latest, one_hot, device
+from utils import find_next_run_dir, find_latest, one_hot
 
 import argparse
 
@@ -19,7 +19,7 @@ parser.add_argument('--batch-size', default=32, type=int)
 parser.add_argument('--resume-path', default=None, type=str)  # default='learned'
 parser.add_argument('--trials', default=6, type=int,
                     help='Number of times we simulate game to determine a winner.')
-parser.add_argument('--agents', default='learned', type=str, required=True,
+parser.add_argument('--agents', default='learned', type=str,
                     help='Path to trained agents.')
 parser.add_argument('--latent', default=16, type=int,
                     help='Dimensionality of latent vector.')

@@ -123,4 +123,5 @@ class PPOAgent(Agent):
         data = torch.load(path)
         self.network.load_state_dict(data['network'])
         self.old_network = copy.deepcopy(self.network)
-        self.optimizer.load_state_dict(data['optimizer'])
+        if data['optimizer'] is not None:
+            self.optimizer.load_state_dict(data['optimizer'])

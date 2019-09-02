@@ -142,4 +142,5 @@ class RaceWinnerDiscriminator(object):
     def load(self, path):
         data = torch.load(path)
         self.network.load_state_dict(data['network'])
-        self.optimizer.load_state_dict(data['optimizer'])
+        if data['optimizer'] is not None:
+            self.optimizer.load_state_dict(data['optimizer'])

@@ -333,10 +333,20 @@ class RaceTrackGenerator(object):
     def save(self, path):
         torch.save({
             'network': self.network.state_dict(),
-            'optimizer': self.optimizer.state_dict()
+            'optimizer': self.optimizer.state_dict(),
+            'latent': self.latent_size
         }, path)
 
     def load(self, path):
         data = torch.load(path)
+        self.latent_size = data['latent']
         self.network.load_state_dict(data['network'])
-        self.optimizer.load_state_dict(data['optimizer'])
+        if data['optimizer'] is not None:
+            self.optimizer.load_state_dict(data['optimizer'])
+
+    @staticmethod
+    def from_file(path):
+        data = torch.load(path)
+        model = RaceTrackGenerator(data['latent'])
+        model.load(path)
+        return model
