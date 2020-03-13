@@ -14,7 +14,8 @@ parser.add_argument('--generator', default=None, required=True, type=str)
 args = parser.parse_args()
 
 
-class GUI(pyforms.basewidget.BaseWidget):
+# REQUIRES: pyforms==3.0.0
+class GUI(pyforms.BaseWidget):
     def __init__(self, latent, generator):
         super().__init__('Explore generator')
         self.latent = latent

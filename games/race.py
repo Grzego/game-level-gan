@@ -93,6 +93,12 @@ class Race(MultiEnvironment):
             print('!!! Fallbacking to default PyTorch implementation !!!')
             print('*****************************************************')
             self._impl_version = Race.IMPL_GPU
+        except Exception as e:
+            print('*****************************************************')
+            print('!!! Unknown error: could not load C++ extension   !!!')
+            print('!!! Fallbacking to default PyTorch implementation !!!')
+            print('*****************************************************')
+            self._impl_version = Race.IMPL_GPU
 
     def state_shape(self):
         return self.observation_size + 2,  # +1 for speed, (+1 for progress -- REMOVED)
@@ -178,10 +184,10 @@ class Race(MultiEnvironment):
             self.directions = torch.zeros((num_boards, self.num_players, 2), device=self.device)
             self.directions[:, :, 1] = 1.  # direction vectors should have length = 1.
             self.speeds = torch.zeros((num_boards, self.num_players), device=self.device)
-            self.alive = torch.ones((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
+            self.alive = torch.ones((num_boards, self.num_players), dtype=torch.bool, device=self.device)
             self.scores = torch.empty((num_boards, self.num_players), dtype=torch.int32, device=self.device)
             self.scores.zero_()
-            self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.uint8, device=self.device)
+            self.finishes = torch.zeros((num_boards, self.num_players), dtype=torch.bool, device=self.device)
 
             # -- boost version
             if self._impl_version == Race.IMPL_BOOST:
@@ -236,7 +242,7 @@ class Race(MultiEnvironment):
             Checks whether point r lies on p -> q segment
             """
             p, q, r = p.unsqueeze(2), q.unsqueeze(2), r.unsqueeze(1)
-            return torch.prod((r <= torch.max(p, q)) & (r >= torch.min(p, q)), dim=-1, dtype=torch.uint8)
+            return torch.prod((r <= torch.max(p, q)) & (r >= torch.min(p, q)), dim=-1).bool()
             # return ((r <= torch.max(p, q)) & (r >= torch.min(p, q))).all(-1)
 
         p1, q1 = segments[:, :, :2], segments[:, :, 2:]
