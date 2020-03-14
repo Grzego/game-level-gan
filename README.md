@@ -21,12 +21,12 @@ python train-agents.py
 ```
 This command will run training on few random predefined tracks. When agents are sufficiently trained, which will take probably quite a lot of time, you can stop the script.
 
-#### Traing generator and discriminator
+#### Train generator and discriminator
 ```bash
 python train-gan.py --agents=<path_to_dir_with_trained_agents>
 ```
 
-#### Playing with generator
+#### Play with generator
 With the trained generator you can evaluate whether the tracks it generates are more fair:
 ```bash
 python evaluate.py --generator=<path_to_dir_with_generator> \
