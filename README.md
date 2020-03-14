@@ -28,7 +28,7 @@ python train-gan.py --agents=<path_to_dir_with_trained_agents>
 ```
 
 #### Play with generator
-With the trained generator you can evaluate whether the tracks it generates are more fair:
+With the trained generator you can evaluate whether the tracks it generates are fairer:
 ```bash
 python evaluate.py --generator=<path_to_dir_with_generator> \
                    --agents=<path_to_dir_with_trained_agents>
