@@ -1,7 +1,7 @@
 ## Generating balanced multiplayer game levels with GANs and RL
 The main idea of this project was to automatically, with as little input as possible, generate game levels. As a level generation is a rather broad area we focused on a more clearly defined goal. And we decided to train a generator capable of generating boards that are _fair_ for all the players involved in the game.
 
-As a proof of concept, a simple racing game was chosen to be used to evaluate if algorithms work. More details are available in the following [file with my thesis](https://drive.google.com/file/d/1ypxK8KeoR3lBjRLUbAzpL4O2isyZhATc/view?usp=sharing).
+As a proof of concept, a simple racing game was chosen to be used to evaluate if algorithms work. More details are available in [my thesis](https://drive.google.com/file/d/1ypxK8KeoR3lBjRLUbAzpL4O2isyZhATc/view?usp=sharing).
 
 
 ## Concept
