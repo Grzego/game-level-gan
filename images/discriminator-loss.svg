@@ -1,1667 +1,1354 @@
-<?xml version="1.0" encoding="utf-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with matplotlib (https://matplotlib.org/) -->
-<svg height="215.182813pt" version="1.1" viewBox="0 0 555.567969 215.182813" width="555.567969pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
- <defs>
-  <style type="text/css">
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="388.0434pt"
+   version="1.1"
+   viewBox="0 0 1001.5873 388.04339"
+   width="1001.5873pt"
+   id="svg356"
+   sodipodi:docname="discriminator-loss.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata360">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1027"
+     id="namedview358"
+     showgrid="false"
+     inkscape:zoom="0.38339142"
+     inkscape:cx="370.37866"
+     inkscape:cy="373.85598"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg356" />
+  <defs
+     id="defs4"
+     style="stroke-linecap:butt;stroke-linejoin:round">
+    <style
+       type="text/css"
+       id="style2">
 *{stroke-linecap:butt;stroke-linejoin:round;}
   </style>
- </defs>
- <g id="figure_1">
-  <g id="patch_1">
-   <path d="M 0 215.182813 
-L 555.567969 215.182813 
-L 555.567969 0 
-L 0 0 
-z
-" style="fill:#ffffff;"/>
+  </defs>
+  <g
+     id="figure_1"
+     transform="matrix(1.8028169,0,0,1.8028169,0,0.10816901)"
+     style="stroke-linecap:butt;stroke-linejoin:round">
+    <g
+       id="patch_1"
+       style="stroke-linecap:butt;stroke-linejoin:round">
+      <path
+         d="M 0,215.18281 H 555.56797 V 0 H 0 Z"
+         style="fill:#ffffff;stroke-linecap:butt;stroke-linejoin:round"
+         id="path6"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="axes_1"
+       style="stroke-linecap:butt;stroke-linejoin:round">
+      <g
+         id="patch_2"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           d="M 47.367969,180.73125 H 549.56797 v -166.32 H 47.367969 Z"
+           style="fill:#eaeaf2;stroke-linecap:butt;stroke-linejoin:round"
+           id="path9"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         id="matplotlib.axis_1"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <g
+           id="xtick_1"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_1"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 69.73522,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path12"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_1"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 0 -->
+            <defs
+               id="defs16">
+              <path
+                 d="M 31.203125,69.296875 C 15.703125,69.296875 6.40625,56 6.40625,34.203125 6.40625,12.296875 15.703125,-1 31.203125,-1 46.59375,-1 56,12.296875 56,34.203125 56,56 46.59375,69.296875 31.203125,69.296875 Z m 0,-4 c 12.796875,0 20.5,-11.59375 20.5,-31.09375 0,-19.609375 -7.703125,-31.109375 -20.5,-31.109375 -12.90625,0 -20.5,11.5 -20.5,31.109375 0,19.5 7.59375,31.09375 20.5,31.09375 z"
+                 id="Neris-Thin-48"
+                 inkscape:connector-curvature="0"
+                 style="stroke-linecap:butt;stroke-linejoin:round" />
+            </defs>
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,66.302877,197.94156)"
+               id="g20">
+              <use
+                 xlink:href="#Neris-Thin-48"
+                 id="use18"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="xtick_2"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_2"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 133.62705,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path24"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_2"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 2500 -->
+            <defs
+               id="defs29">
+              <path
+                 d="m 9,65.40625 c -0.5,-0.109375 -0.703125,-0.5 -0.5,-1 l 0.703125,-2.203125 c 0.09375,-0.5 0.5,-0.703125 1,-0.5 l 4.59375,1.5 c 3.5,1.203125 8.5,2.09375 13.703125,2.09375 10.09375,0 16.703125,-5.09375 16.703125,-12.796875 0,-4.5 -2.796875,-8.59375 -8.703125,-12.796875 L 19.09375,27.09375 C 10.796875,21.203125 7.40625,13.203125 7.40625,3.59375 V 0.796875 C 7.40625,0.296875 7.703125,0 8.203125,0 h 39.59375 c 0.5,0 0.796875,0.296875 0.796875,0.796875 v 2.40625 C 48.59375,3.703125 48.296875,4 47.796875,4 H 11.59375 c 0,7.90625 2.90625,14.90625 9.90625,19.796875 L 38.796875,36.5 C 46,41.703125 49.5,46.796875 49.5,52.5 c 0,10.5 -8.296875,16.796875 -21,16.796875 -5.90625,0 -10.90625,-1.203125 -14.90625,-2.390625 z"
+                 id="Neris-Thin-50"
+                 inkscape:connector-curvature="0"
+                 style="stroke-linecap:butt;stroke-linejoin:round" />
+              <path
+                 d="m 47,67.40625 c 0.203125,0.5 -0.09375,0.890625 -0.59375,0.890625 H 11 C 10.5,68.296875 10.203125,68 10.203125,67.5 V 38.703125 c 0,-0.40625 0.09375,-0.703125 0.5,-1 L 11.59375,36.90625 c 0.3125,-0.3125 0.609375,-0.40625 1,-0.3125 l 5.5,0.703125 c 4,0.703125 8.40625,0.90625 10.8125,0.90625 11.890625,0 18.5,-6.40625 18.5,-17.296875 0,-11.109375 -7.5,-17.8125 -20.203125,-17.8125 -5.203125,0 -10,1 -13.609375,2.109375 L 9,6.703125 C 8.59375,6.796875 8.203125,6.59375 8,6.203125 L 7.203125,3.90625 c -0.203125,-0.5 0,-0.90625 0.5,-1 l 4.59375,-1.5 C 16.203125,0.296875 21.296875,-1 27.203125,-1 42.59375,-1 51.59375,7.203125 51.59375,20.90625 51.59375,34.296875 43.5,42.296875 29,42.296875 c -2.296875,0 -6.796875,-0.390625 -10.90625,-1.09375 l -2.796875,-0.40625 c -1,-0.203125 -1.296875,0.109375 -1.09375,1.109375 0.203125,1.59375 0.203125,3.5 0.203125,5 v 17.5 h 31 c 0.5,0 0.796875,0.1875 0.890625,0.6875 z"
+                 id="Neris-Thin-53"
+                 inkscape:connector-curvature="0"
+                 style="stroke-linecap:butt;stroke-linejoin:round" />
+            </defs>
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,120.44252,197.94156)"
+               id="g39">
+              <use
+                 xlink:href="#Neris-Thin-50"
+                 id="use31"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="56.399994"
+                 xlink:href="#Neris-Thin-53"
+                 id="use33"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="114.89998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use35"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="177.29997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use37"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="xtick_3"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_3"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 197.51888,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path43"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_3"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 5000 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,184.00435,197.94156)"
+               id="g54">
+              <use
+                 xlink:href="#Neris-Thin-53"
+                 id="use46"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="58.499985"
+                 xlink:href="#Neris-Thin-48"
+                 id="use48"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="120.89998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use50"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="183.29997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use52"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="xtick_4"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_4"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 261.41071,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path58"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_4"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 7500 -->
+            <defs
+               id="defs62">
+              <path
+                 d="m 50.796875,67.703125 c -0.203125,0.390625 -0.5,0.59375 -0.890625,0.59375 H 5.796875 C 5.296875,68.296875 5,68 5,67.5 v -2.296875 c 0,-0.5 0.296875,-0.796875 0.796875,-0.796875 H 44.59375 c 1,0 1.40625,-0.3125 0.90625,-1.203125 -1.203125,-1.609375 -2.09375,-3.109375 -2.703125,-4.5 L 16.59375,0.90625 C 16.40625,0.40625 16.59375,0 17.203125,0 h 2.890625 c 0.5,0 0.8125,0.203125 1,0.59375 l 25.8125,57 c 1.296875,2.8125 2.59375,5.609375 4.296875,8.203125 C 51.5,66.09375 51.5,66.5 51.296875,66.90625 Z"
+                 id="Neris-Thin-55"
+                 inkscape:connector-curvature="0"
+                 style="stroke-linecap:butt;stroke-linejoin:round" />
+            </defs>
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,248.22618,197.94156)"
+               id="g72">
+              <use
+                 xlink:href="#Neris-Thin-55"
+                 id="use64"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="56.399994"
+                 xlink:href="#Neris-Thin-53"
+                 id="use66"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="114.89998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use68"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="177.29997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use70"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="xtick_5"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_5"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 325.30254,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path76"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_5"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 10000 -->
+            <defs
+               id="defs80">
+              <path
+                 d="m 19.796875,0 c 0.5,0 0.796875,0.296875 0.796875,0.796875 v 67 c 0,0.40625 -0.1875,0.703125 -0.5,0.90625 L 19.703125,69 C 19.40625,69.203125 19,69.203125 18.59375,69 l -13,-6.90625 C 5.09375,61.796875 5,61.5 5.203125,61 l 1.09375,-2.296875 C 6.59375,58.296875 7,58.09375 7.40625,58.40625 L 15.5,62.796875 C 15.703125,62.90625 15.90625,63 16.09375,63 16.5,63 16.703125,62.703125 16.703125,62.09375 16.59375,60.40625 16.40625,59 16.40625,57.296875 v -56.5 C 16.40625,0.296875 16.703125,0 17.203125,0 Z"
+                 id="Neris-Thin-49"
+                 inkscape:connector-curvature="0"
+                 style="stroke-linecap:butt;stroke-linejoin:round" />
+            </defs>
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,309.92832,197.94156)"
+               id="g92">
+              <use
+                 xlink:href="#Neris-Thin-49"
+                 id="use82"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="29.899994"
+                 xlink:href="#Neris-Thin-48"
+                 id="use84"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="92.299988"
+                 xlink:href="#Neris-Thin-48"
+                 id="use86"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="154.69998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use88"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="217.09998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use90"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="xtick_6"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_6"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 389.19437,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path96"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_6"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 12500 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,374.36499,197.94156)"
+               id="g109">
+              <use
+                 xlink:href="#Neris-Thin-49"
+                 id="use99"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="29.899994"
+                 xlink:href="#Neris-Thin-50"
+                 id="use101"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="86.299988"
+                 xlink:href="#Neris-Thin-53"
+                 id="use103"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="144.79997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use105"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="207.19997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use107"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="xtick_7"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_7"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 453.08619,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path113"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_7"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 15000 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,437.92682,197.94156)"
+               id="g126">
+              <use
+                 xlink:href="#Neris-Thin-49"
+                 id="use116"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="29.899994"
+                 xlink:href="#Neris-Thin-53"
+                 id="use118"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="88.399979"
+                 xlink:href="#Neris-Thin-48"
+                 id="use120"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="150.79997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use122"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="213.19997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use124"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="xtick_8"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_8"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="m 516.97802,180.73125 v -166.32"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path130"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_8"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 17500 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,502.14865,197.94156)"
+               id="g143">
+              <use
+                 xlink:href="#Neris-Thin-49"
+                 id="use133"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="29.899994"
+                 xlink:href="#Neris-Thin-55"
+                 id="use135"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="86.299988"
+                 xlink:href="#Neris-Thin-53"
+                 id="use137"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="144.79997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use139"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="207.19997"
+                 xlink:href="#Neris-Thin-48"
+                 id="use141"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="text_9"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <!-- Iteration -->
+          <defs
+             id="defs155">
+            <path
+               d="m 13.59375,67.5 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 H 10.09375 C 9.59375,68.296875 9.296875,68 9.296875,67.5 V 0.796875 C 9.296875,0.296875 9.59375,0 10.09375,0 h 2.703125 c 0.5,0 0.796875,0.296875 0.796875,0.796875 z"
+               id="Neris-Thin-73"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="M 15.296875,47.59375 V 61 c 0,0.59375 -0.390625,0.90625 -0.890625,0.703125 l -2.609375,-0.90625 c -0.5,-0.09375 -0.703125,-0.390625 -0.703125,-0.890625 v -12.3125 h -4.5 c -0.5,0 -0.796875,-0.296875 -0.796875,-0.796875 V 44.40625 c 0,-0.5 0.296875,-0.8125 0.796875,-0.8125 h 4.5 V 10.296875 C 11.09375,3.09375 14.90625,-1 21.296875,-1 c 1.5,0 3,0.296875 4.109375,0.796875 0.5,0.203125 0.59375,0.5 0.390625,1 L 24.90625,3.09375 C 24.703125,3.5 24.40625,3.703125 23.90625,3.5 23,3.203125 22.09375,3.09375 21.296875,3.09375 c -3.796875,0 -6,2.609375 -6,7.3125 v 33.1875 H 26.40625 c 0.5,0 0.796875,0.3125 0.796875,0.8125 v 2.390625 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 z"
+               id="Neris-Thin-116"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="m 40.203125,1.296875 c 0.5,0.109375 0.703125,0.5 0.5,1 L 40,4.59375 c -0.203125,0.5 -0.59375,0.703125 -1.09375,0.609375 L 36.5,4.40625 c -3.09375,-1 -6.203125,-1.3125 -9.90625,-1.3125 -9.1875,0 -15.1875,5.609375 -16.59375,15.5 l 21.40625,3.609375 c 8.5,1.5 12.6875,5.5 12.6875,12.09375 0,9 -6.5,14.296875 -17.5,14.296875 -13.09375,0 -21.1875,-9.5 -21.1875,-24.796875 C 5.40625,8.5 13.40625,-1 26.59375,-1 c 4,0 7.5,0.5 11.109375,1.59375 z M 9.59375,22.5 c 0.109375,14.59375 6.3125,22 17,22 8.40625,0 13.3125,-3.703125 13.3125,-10.203125 0,-4.296875 -3.203125,-7.09375 -9.3125,-8.203125 z"
+               id="Neris-Thin-101"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="m 30.796875,47.796875 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 -7.796875,-0.296875 -13,-4.09375 -16.59375,-10.5 -0.40625,-0.59375 -1,-0.5 -1.109375,0.203125 v 8.5 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 H 9.09375 c -0.5,0 -0.796875,-0.296875 -0.796875,-0.796875 v -46 C 8.296875,0.296875 8.59375,0 9.09375,0 h 2.609375 C 12.203125,0 12.5,0.296875 12.5,0.796875 v 17.5 C 12.5,34.40625 19.296875,44 30,44.5 c 0.5,0 0.796875,0.296875 0.796875,0.796875 z"
+               id="Neris-Thin-114"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="M 9.703125,46 C 9.203125,45.90625 9,45.5 9.09375,45 l 0.8125,-2.296875 c 0.09375,-0.5 0.5,-0.703125 1,-0.609375 l 3.5,1.203125 C 17,44 20.296875,44.5 24,44.5 c 9.296875,0 14.5,-5.703125 14.5,-15.40625 v -1.6875 H 22.09375 C 10.703125,27.296875 4.90625,21.5 4.90625,13.09375 4.90625,4.40625 10.59375,-1 20.296875,-1 c 8,0 13.296875,2.40625 16.90625,7.09375 0.796875,1.109375 1.59375,1.3125 1.703125,0 V 0.796875 C 38.90625,0.296875 39.203125,0 39.703125,0 H 42 c 0.5,0 0.796875,0.296875 0.796875,0.796875 V 29.09375 c 0,12 -7.203125,19.5 -18.703125,19.5 -4.296875,0 -8,-0.59375 -10.6875,-1.5 z M 38.5,23.40625 V 21.703125 C 38.5,10 31.796875,3 20.40625,3 13.09375,3 9.09375,6.796875 9.09375,13.203125 c 0,6 4.109375,10.203125 13,10.203125 z"
+               id="Neris-Thin-97"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="m 12.203125,70.59375 c -2,0 -3.203125,-1.1875 -3.203125,-3.1875 0,-2.203125 1.203125,-3.3125 3.203125,-3.3125 2,0 3.09375,1.109375 3.09375,3.3125 0,2 -1.09375,3.1875 -3.09375,3.1875 z m 3.09375,-23.796875 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 H 6.59375 c -0.5,0 -0.796875,-0.296875 -0.796875,-0.796875 V 44.40625 c 0,-0.5 0.296875,-0.8125 0.796875,-0.8125 h 4.5 V 0.796875 C 11.09375,0.296875 11.40625,0 11.90625,0 H 14.5 c 0.5,0 0.796875,0.296875 0.796875,0.796875 z"
+               id="Neris-Thin-105"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="m 26.59375,48.59375 c -13.09375,0 -21.1875,-9.5 -21.1875,-24.796875 C 5.40625,8.59375 13.5,-1 26.59375,-1 c 13.109375,0 21.203125,9.59375 21.203125,24.796875 0,15.296875 -8.09375,24.796875 -21.203125,24.796875 z m 0,-4.09375 C 37.203125,44.5 43.5,36.796875 43.5,23.796875 43.5,10.90625 37.203125,3.09375 26.59375,3.09375 c -10.59375,0 -17,7.8125 -17,20.703125 0,13 6.40625,20.703125 17,20.703125 z"
+               id="Neris-Thin-111"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="m 12.296875,46.796875 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 H 9.09375 c -0.5,0 -0.796875,-0.296875 -0.796875,-0.796875 v -46 C 8.296875,0.296875 8.59375,0 9.09375,0 h 2.609375 C 12.203125,0 12.5,0.296875 12.5,0.796875 V 22 c 0,14.296875 6.59375,22.5 17.796875,22.5 8.296875,0 13.296875,-5.90625 13.296875,-15.703125 v -28 C 43.59375,0.296875 43.90625,0 44.40625,0 h 2.5 c 0.5,0 0.796875,0.296875 0.796875,0.796875 V 29 c 0,12 -6.5,19.59375 -17.203125,19.59375 -8,0 -13.40625,-3.296875 -17.09375,-9 -0.5,-0.796875 -1.109375,-0.796875 -1.109375,0.109375 z"
+               id="Neris-Thin-110"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+          </defs>
+          <g
+             style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+             transform="matrix(0.12,0,0,-0.12,277.15766,212.66281)"
+             id="g175">
+            <use
+               xlink:href="#Neris-Thin-73"
+               id="use157"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               x="0"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="22.899994"
+               xlink:href="#Neris-Thin-116"
+               id="use159"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="54.999985"
+               xlink:href="#Neris-Thin-101"
+               id="use161"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="104.49997"
+               xlink:href="#Neris-Thin-114"
+               id="use163"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="140.69997"
+               xlink:href="#Neris-Thin-97"
+               id="use165"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="190.79996"
+               xlink:href="#Neris-Thin-116"
+               id="use167"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="222.89995"
+               xlink:href="#Neris-Thin-105"
+               id="use169"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="246.49994"
+               xlink:href="#Neris-Thin-111"
+               id="use171"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="299.59995"
+               xlink:href="#Neris-Thin-110"
+               id="use173"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+          </g>
+        </g>
+      </g>
+      <g
+         id="matplotlib.axis_2"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <g
+           id="ytick_1"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_9"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="M 47.367969,176.26809 H 549.56797"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path179"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_10"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 0.00 -->
+            <defs
+               id="defs183">
+              <path
+                 d="m 10.59375,6.90625 c -2.390625,0 -3.6875,-1.5 -3.6875,-3.90625 0,-2.5 1.296875,-4 3.6875,-4 2.40625,0 3.8125,1.5 3.8125,4 0,2.40625 -1.40625,3.90625 -3.8125,3.90625 z"
+                 id="Neris-Thin-46"
+                 inkscape:connector-curvature="0"
+                 style="stroke-linecap:butt;stroke-linejoin:round" />
+            </defs>
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,14.93125,180.12325)"
+               id="g193">
+              <use
+                 xlink:href="#Neris-Thin-48"
+                 id="use185"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="62.399994"
+                 xlink:href="#Neris-Thin-46"
+                 id="use187"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="83.699982"
+                 xlink:href="#Neris-Thin-48"
+                 id="use189"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="146.09998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use191"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="ytick_2"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_10"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="M 47.367969,148.13404 H 549.56797"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path197"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_11"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 0.05 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,15.360937,151.9892)"
+               id="g208">
+              <use
+                 xlink:href="#Neris-Thin-48"
+                 id="use200"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="62.399994"
+                 xlink:href="#Neris-Thin-46"
+                 id="use202"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="83.699982"
+                 xlink:href="#Neris-Thin-48"
+                 id="use204"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="146.09998"
+                 xlink:href="#Neris-Thin-53"
+                 id="use206"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="ytick_3"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_11"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="M 47.367969,119.99999 H 549.56797"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path212"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_12"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 0.10 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,18.50625,123.85515)"
+               id="g223">
+              <use
+                 xlink:href="#Neris-Thin-48"
+                 id="use215"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="62.399994"
+                 xlink:href="#Neris-Thin-46"
+                 id="use217"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="83.699982"
+                 xlink:href="#Neris-Thin-49"
+                 id="use219"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="113.59998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use221"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="ytick_4"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_12"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="M 47.367969,91.86594 H 549.56797"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path227"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_13"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 0.15 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,18.935937,95.721096)"
+               id="g238">
+              <use
+                 xlink:href="#Neris-Thin-48"
+                 id="use230"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="62.399994"
+                 xlink:href="#Neris-Thin-46"
+                 id="use232"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="83.699982"
+                 xlink:href="#Neris-Thin-49"
+                 id="use234"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="113.59998"
+                 xlink:href="#Neris-Thin-53"
+                 id="use236"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="ytick_5"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_13"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="M 47.367969,63.731888 H 549.56797"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path242"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_14"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 0.20 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,15.59125,67.587044)"
+               id="g253">
+              <use
+                 xlink:href="#Neris-Thin-48"
+                 id="use245"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="62.399994"
+                 xlink:href="#Neris-Thin-46"
+                 id="use247"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="83.699982"
+                 xlink:href="#Neris-Thin-50"
+                 id="use249"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="140.09998"
+                 xlink:href="#Neris-Thin-48"
+                 id="use251"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="ytick_6"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <g
+             id="line2d_14"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <path
+               clip-path="url(#pdc0481f6d2)"
+               d="M 47.367969,35.597836 H 549.56797"
+               style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round"
+               id="path257"
+               inkscape:connector-curvature="0" />
+          </g>
+          <g
+             id="text_15"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <!-- 0.25 -->
+            <g
+               style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+               transform="matrix(0.11,0,0,-0.11,16.020937,39.452992)"
+               id="g268">
+              <use
+                 xlink:href="#Neris-Thin-48"
+                 id="use260"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 x="0"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="62.399994"
+                 xlink:href="#Neris-Thin-46"
+                 id="use262"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="83.699982"
+                 xlink:href="#Neris-Thin-50"
+                 id="use264"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+              <use
+                 x="140.09998"
+                 xlink:href="#Neris-Thin-53"
+                 id="use266"
+                 style="stroke-linecap:butt;stroke-linejoin:round"
+                 y="0"
+                 width="100%"
+                 height="100%" />
+            </g>
+          </g>
+        </g>
+        <g
+           id="text_16"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <!-- Loss -->
+          <defs
+             id="defs274">
+            <path
+               d="m 13.59375,4 v 63.5 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 H 10.09375 C 9.59375,68.296875 9.296875,68 9.296875,67.5 V 0.796875 C 9.296875,0.296875 9.59375,0 10.09375,0 h 39 c 0.5,0 0.8125,0.296875 0.8125,0.796875 v 2.40625 c 0,0.5 -0.3125,0.796875 -0.8125,0.796875 z"
+               id="Neris-Thin-76"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+            <path
+               d="m 29.296875,20.796875 c 5.296875,-1.5 7.609375,-4.09375 7.609375,-8.390625 0,-5.8125 -5,-9.3125 -13.609375,-9.3125 -6.203125,0 -10.390625,0.703125 -13.59375,2 l -2,0.8125 C 7.296875,6.09375 6.90625,6 6.703125,5.5 l -1,-2.203125 c -0.203125,-0.390625 0,-0.796875 0.5,-1 l 2,-0.796875 C 11.90625,0 17,-1 23.296875,-1 34.59375,-1 41.09375,4 41.09375,12.40625 41.09375,18.59375 38,22.5 30.59375,24.5 l -12.296875,3.59375 c -5.203125,1.5 -7.5,4.109375 -7.5,8.203125 0,5 4.703125,8.203125 12.5,8.203125 3.703125,0 7.5,-0.5 10.109375,-1.296875 l 3.5,-1.109375 c 0.5,-0.09375 0.890625,0.109375 1,0.5 l 0.796875,2.3125 c 0.203125,0.5 0,0.890625 -0.5,1 L 34.5,47.09375 c -2.90625,0.90625 -7,1.5 -11.296875,1.5 -10.5,0 -16.609375,-4.6875 -16.609375,-12.296875 0,-6.203125 3.3125,-10 10.203125,-11.890625 z"
+               id="Neris-Thin-115"
+               inkscape:connector-curvature="0"
+               style="stroke-linecap:butt;stroke-linejoin:round" />
+          </defs>
+          <g
+             style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+             transform="matrix(0,-0.12,-0.12,0,8.41125,109.68469)"
+             id="g284">
+            <use
+               xlink:href="#Neris-Thin-76"
+               id="use276"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               x="0"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="55.799988"
+               xlink:href="#Neris-Thin-111"
+               id="use278"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="108.89998"
+               xlink:href="#Neris-Thin-115"
+               id="use280"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+            <use
+               x="155.39996"
+               xlink:href="#Neris-Thin-115"
+               id="use282"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               y="0"
+               width="100%"
+               height="100%" />
+          </g>
+        </g>
+      </g>
+      <g
+         id="line2d_15"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           clip-path="url(#pdc0481f6d2)"
+           d="m 70.195241,164.08801 0.613362,1.02067 0.07667,8.06257 0.664475,-12.42613 0.587805,-9.99447 1.635631,19.51123 1.814528,-39.71587 0.127784,-38.526954 0.536691,-14.754952 0.460021,-21.30694 0.894486,-4.631829 0.05111,3.251657 0.204454,0.0448 0.741145,-2.6303 0.511135,-3.294896 1.916755,2.687508 0.460021,7.850904 0.357794,2.335078 1.584517,6.594564 0.690032,-9.053156 0.408908,2.393351 0.178897,18.945953 0.02556,-8.778677 0.843372,-8.385205 0.357794,0.01456 0.204454,-2.319222 0.127784,21.801655 0.357794,-11.888492 0.255567,6.057489 1.303394,-8.237954 0.204453,4.836103 0.664475,-13.223521 0.230011,0.452768 0.15334,14.289825 0.357795,1.727446 0.23001,-4.136803 0.204454,-3.108314 0.15334,8.920385 0.715589,-31.39353 2.785684,25.117111 0.434464,-3.140921 0.230011,9.46063 0.02556,-1.653133 0.153341,-20.393932 0.15334,16.692072 0.460021,14.674711 0.07667,-7.112539 1.48229,-20.507795 0.230011,22.289707 0.15334,-4.976261 0.383351,3.250408 0.15334,-10.887437 0.127784,9.955623 1.32895,-1.146795 0.153341,-10.155982 0.460021,19.677383 0.332233,-1.871493 1.30339,-0.82486 0.43447,-0.621165 1.40562,-30.001988 0.0767,10.677596 0.35779,20.019618 0.10223,-17.293549 1.22672,2.036946 0.1789,-7.834931 0.56225,8.610247 0.30668,12.754051 0.25557,2.249739 0.7667,5.272606 0.28112,-15.757951 0.20446,-4.620276 0.15334,3.32135 0.81781,8.169494 0.74115,-17.892378 0.81781,18.674292 0.5367,-13.587992 0.89448,1.327475 1.07338,5.493951 0.23001,-1.64515 0.15334,12.13738 0.12779,-9.479236 0.1789,12.62788 0.23,-14.538495 0.3578,22.755127 0.12778,-35.65004 0.23001,10.099763 0.89449,13.718457 1.15005,-5.887784 0.46002,0.02329 0.23001,7.194457 0.33224,4.585555 0.28113,-11.510372 1.45673,11.937936 0.33224,-22.874012 0.51113,9.400479 0.86893,8.112688 0.89449,-12.048705 0.9456,1.515785 0.0767,11.131144 0.0256,-5.881713 0.20446,-23.324501 0.10222,33.590195 0.1789,-0.760257 1.35451,-23.655726 0.17889,28.130688 0.23001,-12.857366 0.56225,-19.716623 0.10223,30.983498 0.51113,-18.259389 0.51114,0.666366 0.15334,-4.619428 0.12778,18.622123 0.38335,-12.74996 0.12779,3.083596 0.48557,8.215165 0.40891,-14.039385 0.25557,14.352885 0.30668,-8.066271 0.66448,-1.320792 0.23001,17.573955 0.89448,-17.584285 0.0256,12.402527 0.0511,-10.10689 1.1245,10.17436 0.20445,-24.621849 0.23001,7.037598 0.0511,-2.065228 0.12778,10.292055 0.63892,-1.502654 0.0256,0.162468 0.25557,12.465059 0.1789,-14.900995 0.35779,2.14961 0.15334,9.953637 0.23001,-10.48662 0.38336,-9.695567 0.15334,23.480504 1.3545,0.688795 2.01898,-11.087679 0.12779,-23.66193 0.33224,30.573567 0.94559,-7.476859 0.3578,10.489538 0.89448,-10.791728 2.12121,3.444285 0.61336,-10.620723 0.61337,5.745355 1.20116,-7.96922 0.20446,22.080494 1.40562,-22.016033 0.28112,9.701285 1.48229,0.786677 1.43118,-11.671867 0.15334,-6.481632 0.40891,23.257809 0.46002,-11.162612 0.0256,2.575238 0.86893,-0.737425 0.25557,5.184617 0.15334,-13.741958 0.0256,8.773311 0.63892,24.803965 0.84337,-35.730911 1.02227,12.954058 0.79226,8.500886 0.81781,-7.205038 0.56225,-0.681509 0.48558,-4.157588 0.38335,11.70829 0.40891,-8.615898 0.74114,12.044244 0.0767,5.381086 0.63892,-15.120621 1.61007,-3.595376 0.46002,-3.475543 0.0511,0.894763 0.20445,-5.689119 0.71559,1.160403 0.3578,14.577467 1.43117,-13.568766 0.10223,17.513788 0.28112,-10.729279 1.32895,7.672346 0.12779,-9.735159 0.4089,-3.174678 0.12779,20.366589 0.0511,-16.639106 0.25557,12.861726 0.84337,-22.077769 0.30668,-4.324442 1.32895,22.93538 0.28113,-8.375747 0.43446,5.668351 0.71559,-10.770464 0.97115,0.335602 0.3578,4.882655 1.45673,-8.352413 0.12779,-5.737792 0.28112,4.061174 1.86564,13.254251 0.28113,-9.752842 0.0256,-7.47145 0.0511,7.286562 0.12778,0.105872 0.0256,25.320257 0.63891,-26.898365 0.12779,13.856048 0.28112,-16.610674 0.51114,5.409543 0.0767,5.957569 0.4089,-1.3915 0.56225,1.322914 0.33224,9.099455 0.0511,-15.89966 1.27784,4.814908 0.61336,-1.402342 0.1789,4.995873 0.7667,-3.190408 0.0767,13.690535 1.50785,-20.372198 0.43446,-17.192457 0.61336,27.5683 1.15006,-8.84012 0.0767,-5.25696 0.40891,4.394956 0.79225,3.484146 0.71559,-16.005709 0.30668,24.37219 0.20446,-19.107985 0.9456,3.928244 0.12778,5.986328 0.81782,-12.407264 0.20445,12.798322 0.23001,6.080756 0.51113,-6.645023 0.0256,-3.943663 0.3578,11.868234 0.97115,-10.736271 0.30668,-10.966379 0.48558,18.377427 0.5878,-2.396814 0.51114,-0.869902 1.22672,0.980604 0.23001,0.342327 0.0767,-5.517747 1.94231,-0.801953 0.0511,-14.780978 0.0256,14.263103 1.3545,8.247051 0.51114,-11.995395 0.20445,-10.123274 1.68674,8.604386 0.20446,-4.263988 0.79226,12.743805 1.27783,-1.364552 1.02227,-5.093813 0.40891,-7.11461 0.35779,10.309789 0.5367,1.048829 1.58451,-8.537527 0.12779,-2.022768 1.22672,12.91714 0.51113,-19.127405 0.0511,12.998572 0.81781,0.834142 0.61337,-1.390117 0.35779,-10.376849 1.09894,-0.677266 0.71559,12.564081 0.0511,-9.252398 0.10223,7.568183 0.38335,2.390064 1.04782,-1.37058 0.0767,-4.055363 1.3545,10.941267 0.79226,-6.214415 0.0256,-14.5883 0.43446,18.130526 0.0767,-6.515154 0.86893,6.522717 0.0511,-2.738612 0.1789,6.544114 0.92004,-1.913693 0.5367,-3.800237 0.61336,2.626862 0.12778,1.242774 0.15334,-14.741881 0.69003,15.886304 0.51114,-2.402968 0.12778,-5.046121 0.38335,-0.248688 0.12779,1.050331 1.09894,1.300619 0.63891,-11.248738 0.0511,8.949588 0.40891,-12.889697 0.25556,24.882586 1.27784,-17.609733 0.48558,0.95992 0.28112,2.037223 0.0511,5.577143 0.15334,-6.192086 0.33224,9.49115 0.46002,-20.525822 0.99672,19.273934 0.5878,-2.122109 0.74115,-6.918839 0.28112,1.842684 0.28112,12.289024 0.33224,2.089921 0.61336,-6.026239 2.42789,-13.696397 0.0256,0.85533 0.10223,10.502258 0.51113,-5.020934 0.0256,-6.466799 0.23001,0.573775 1.12449,0.690505 0.1789,-3.81392 0.0767,12.564433 0.48558,-3.855784 1.38006,2.752597 0.23001,-3.785069 0.0511,-8.820407 0.10222,8.408254 0.15334,-0.102485 0.0767,1.956287 0.1789,-17.420551 0.20446,7.971148 0.0767,8.347867 0.30668,2.451213 0.69003,-8.58672 0.10222,-4.533763 0.28113,10.441478 2.01898,0.287759 0.35779,15.147788 0.20446,-24.259929 0.35779,0.828231 0.0256,4.470921 0.66447,5.379962 0.99672,-0.834385 0.74114,-7.977487 0.0767,-22.970745 0.66448,28.549188 0.46002,3.77229 0.10223,-6.291586 0.63891,8.961889 1.32896,-9.574334 0.38335,18.239383 0.20445,-12.432217 0.0256,-10.815824 0.56224,10.804027 0.46002,-6.889433 1.02227,-3.239198 0.5367,15.885825 0.79225,-22.887872 1.35451,9.051713 0.28113,2.723142 0.71558,-3.513818 0.0256,11.460366 0.48558,-9.576984 0.5878,1.041846 0.48558,-12.008526 0.99671,7.758665 0.0767,8.745097 0.1789,-5.667236 0.25557,0.854089 0.0767,3.824007 0.12778,-2.468234 0.25557,-0.603926 0.84337,5.003637 0.48558,-10.590196 2.01898,-1.17812 0.89449,9.943198 0.43446,-9.200322 0.25557,6.295342 0.12778,-11.965722 0.28113,10.438149 0.15334,-4.665787 0.63891,11.799975 0.12779,-9.239209 0.12778,2.711177 0.46002,2.652083 0.28113,6.000071 0.0767,-49.372085 0.51113,43.565581 0.46002,-4.687084 0.89449,-1.12518 0.12778,2.6399 1.55896,3.498801 0.0256,-8.188208 0.81782,10.792172 1.30339,-8.446932 0.23001,7.249527 0.86893,-10.982888 0.28112,-1.85303 0.30668,8.169066 0.43447,4.551363 1.5334,-12.929499 0.61336,-1.13416 0.7667,9.200087 0.10223,-10.263791 0.3578,3.807229 0.43446,8.505037 0.15334,0.641993 1.07338,-5.55811 0.40891,11.700685 0.28113,-12.670381 0.23001,6.487233 0.20445,-1.347901 0.51114,6.939054 0.0511,-17.353004 0.0767,4.283583 0.20445,9.204531 0.51114,-5.316575 0.0767,1.719799 0.12778,-10.212578 0.23001,9.687836 2.30011,0.280725 0.0256,-5.872138 0.0511,7.624126 0.71559,-10.542512 0.25556,13.323508 0.38335,-6.819473 1.09894,-0.990942 0.1789,1.903564 0.48558,-4.770838 0.23001,4.554323 0.84337,-0.225278 0.0256,-7.169672 0.23001,11.589078 0.97115,-6.629436 0.20446,5.235655 0.12778,-8.834594 0.81782,9.186102 1.20116,2.23567 0.10223,-18.47743 0.58781,21.867433 0.46002,-14.967552 0.0767,5.940565 0.53669,-8.838107 0.28112,0.07653 0.61336,4.431429 0.1789,9.762828 0.43447,-9.41179 0.12778,3.844851 0.53669,1.161158 0.0511,-6.34882 0.12779,2.292006 0.28112,-3.036215 0.30668,1.580456 0.43447,-3.922073 0.46002,-0.6787 0.15334,6.800867 0.25557,-8.517488 0.48557,9.29521 0.69004,3.949918 0.20445,-9.445437 0.53669,3.904541 0.53669,-1.940423 1.27784,8.613743 0.1789,-10.844441 1.38006,4.973468 0.25557,-2.923844 0.17889,-4.399056 0.69004,3.740957 0.53669,-3.559892 0.25556,6.101298 0.40891,-3.428413 0.23001,-4.207845 0.81782,6.453107 0.53669,-4.253927 1.09894,3.845387 0.0767,1.006379 0.51113,-0.475625 0.1789,1.165954 0.66448,1.001566 1.78897,-8.109292 0.23001,2.137276 0.1789,-0.941331 0.33223,-4.897688 0.56225,0.826839 0.28112,9.753186 0.69004,-11.018691 0.61336,2.508203 0.15334,-2.319633 0.5878,2.257923 0.46002,3.545177 1.78897,-6.443231 0.23002,3.992043 0.89448,1.29631 0.71559,1.259886 0.0767,1.990731 1.02227,-6.543845 0.61336,4.459056 1.66119,1.932483 1.99342,-3.109731 0.12779,-5.16878 0.0767,2.56023 0.35779,-0.930641 0.30668,2.653928 0.58781,-4.025296 0.15334,5.481097 0.38335,-6.007684 0.15334,3.909907 0.25557,-4.185508 0.61336,4.654434 0.43446,0.924855 0.56225,2.819574 0.97116,-5.857726 0.28112,1.190354 0.51114,-2.994519 0.17889,6.55426 0.12779,-2.235645 1.99342,-2.064431 0.84337,2.828645 0.38335,0.661168 0.28113,2.638969 0.74114,-6.519094 0.3578,5.416184 0.28112,-3.829281 0.25557,-0.349076 0.10223,0.493316 0.0256,1.52822 0.71559,-3.264805 0.23001,2.557136 0.58781,-0.633825 0.0256,4.383033 0.30668,-2.582893 0.79226,-0.07855 0.23001,-2.490378 0.43447,3.308229 0.12778,-4.687663 0.23001,1.065314 0.20446,-1.146158 0.20445,1.241524 0.43446,0.3066 0.76671,3.966117 0.25556,-5.394761 0.9456,-1.965887 0.23001,8.288589 0.0256,-4.292404 0.56225,-0.22464 0.17889,-0.821205 0.71559,-1.241173 0.0256,2.789473 0.23001,0.618557 0.12778,1.262294 0.28113,-0.980613 0.23001,-1.442671 0.35779,-1.172109 0.97116,2.349458 0.0767,-4.46485 0.23001,3.499866 0.63892,-1.340396 0.10222,0.790257 0.23002,-0.766394 0.35779,2.606403 0.15334,-0.387192 0.0511,-4.447083 0.86893,4.395828 0.15334,-1.325362 0.15334,-0.07871 0.0511,-1.724712 0.28112,-0.477101 0.12778,1.51628 0.3578,2.296685 0.23001,-0.153548 1.04782,-3.515788 0.48558,4.36618 0.69003,-3.400425 0.69004,0.902451 0.63891,0.63505 0.0256,2.636319 1.58452,-2.562619 0.23001,-0.04132 0.97115,-1.347975 0.79226,2.804212 0.51114,-5.183133 0.48558,2.954733 0.79225,-1.603203 0.20446,3.407502 0.0511,-2.317713 0.86893,-0.779668 0.43447,0.172203 0.51113,-0.899567 0.71559,0.314574 0.0767,-0.106711 0.0256,0.111641 0.15334,2.767363 0.0511,-5.407825 0.43446,2.791418 0.20446,0.370231 0.23001,3.250726 0.38335,-0.621466 0.40891,-0.112186 0.99671,-1.665786 0.30668,1.779229 0.0511,3.376923 0.25557,-6.415427 0.28113,0.908128 0.35779,1.537057 0.0511,1.743393 0.43447,-3.278421 0.48558,-0.690254 0.92004,-2.220997 0.69003,5.765177 0.15334,-4.139537 0.23001,1.15399 0.7667,-1.319116 0.58781,2.611946 0.0255,1.228805 0.46002,-0.659927 0.71559,-2.624992 0.12779,1.555218 0.69003,-1.142914 0.33224,4.482324 0.0767,-3.797922 0.51113,0.822965 0.12779,-2.888361 0.35779,0.985644 0.25557,2.435114 0.12778,2.890533 0.1789,-5.779933 0.48558,5.258083 0.30668,-1.917231 0.89448,-1.80211 1.58452,-0.738223 0.38335,0.06247 0.28112,0.554088 0.10223,-1.529938 0.40891,2.331765 1.07338,-0.301149 1.1245,0.250817 0.51113,-2.052819 0.0767,3.762196 0.40891,-1.701932 0.40891,0.758731 1.81453,-4.118289 0.23001,0.966551 0.79226,1.5142 0.48557,4.785008 0.0767,-6.825652 0.56225,4.076643 1.66119,-3.640417 0.15334,-1.406894 0.0511,5.970808 0.53669,-4.259754 0.56225,4.069348 0.74115,-3.712676 1.17561,1.899062 0.71559,-0.583183 1.50784,-0.474191 0.40891,-0.75723 0.79226,0.574488 0.20445,0.408657 0.5367,-2.245656 0.7667,2.570568 0.33223,-0.349504 0.33224,-3.040525 0.15334,2.60611 1.09894,-0.181753 0.51114,-0.702076 1.48229,-4.547858 0.43446,8.660899 0.69003,-1.387459 0.23001,-3.400894 0.30668,-0.611665 0.30668,6.907276 0.38336,-4.407332 0.10222,2.937008 0.43447,-0.65176 0.46002,-2.719621 0.46002,0.629508 0.38335,-0.240873 0.25557,0.325524 0.0767,1.191896 0.30668,-0.572509 0.12778,0.598224 0.71559,-1.446385 0.66448,1.361475 0.84337,-3.793035 0.38335,0.984327 0.92004,3.520007 0.12778,-4.31651 1.22673,4.547137 0.10223,-3.96045 0.51113,2.928959 1.25228,-1.448305 0.66447,1.416461 0.0767,-1.128719 1.07339,2.611007 0.40891,-2.210424 1.27783,0.305644 0.20446,0.880022 0.15334,-0.196484 1.27783,-3.701558 0.0767,-2.083465 0.0767,3.061637 0.33224,4.388182 0.69003,-4.129131 0.63892,6.072438 0.1789,-3.025038 0.56225,-0.572559 0.53669,1.121432 0.33223,-1.927385 0.89449,-1.275474 0.5878,2.949468 0.0767,-1.802564 0.33224,1.572046 0.25557,-1.650945 1.09894,2.191131 0.0256,-2.179711 0.48557,-0.793536 0.0767,0.354401 0.20446,3.66075 0.0256,-3.053848 0.0256,3.007968 0.15334,-4.590385 0.51114,0.719139 0.0511,0.332324 1.73786,2.199532 0.35779,-4.488797 0.15334,1.186103 0.86893,1.143081 1.04783,2.012002 0.71559,-0.07685 0.69003,-3.111022 0.12778,0.85424 0.15334,2.220997 0.58781,-0.11663 0.9456,-1.198 0.0255,-0.721034 0.15334,2.242243 0.23001,0.376997 0.74115,-2.845054 0.15334,4.091215 0.61336,-4.000427 0.61336,0.383327 0.28113,1.244342 1.27783,-0.348296 0.61336,-2.673028 0.58781,-0.526435 0.92004,1.363244 0.61336,1.275155 0.0511,-0.33094 0.0256,1.028556 1.53341,0.947862 1.30339,-4.136836 0.23001,0.71389 0.10223,2.744917 0.15334,-1.104638 0.40891,4.258933 1.09894,-6.861957 0.30668,3.057864 0.53669,1.453848 0.0256,1.85308 0.10223,-5.459758 0.10223,2.07471 0.10222,-2.074752 0.43447,3.055415 0.15334,-1.064131 0.10223,4.396021 0.0511,-4.042418 0.63892,-2.096955 0.48558,1.486917 0.17889,3.372597 0.0256,-5.221997 0.48558,1.800878 0.81781,1.986396 0.0256,2.809487 0.0256,-3.412491 0.61336,0.936015 0.35779,-6.766138 1.3034,4.101621 0.30668,-1.503635 1.61007,2.090876 1.07338,-1.064761 0.10223,4.005894 1.1245,-6.145275 0.0511,3.029189 0.43446,2.512965 0.9456,-0.775575 0.76671,3.659559 0.12778,-6.053103 0.0511,2.094876 0.25557,0.336465 0.46002,3.152728 0.58781,-3.029742 0.43446,-0.186113 0.15334,-4.369861 0.1789,4.993943 1.20117,0.297125 0.12778,-4.947493 0.40891,-0.139494 0.15334,4.123161 0.25556,-3.262054 0.46003,2.461517 0.17889,-1.046893 0.25557,-2.176457 0.0511,3.728481 0.33224,-0.328777 0.48558,0.351365 0.51113,-2.598246 0.28113,2.935927 1.20116,-0.58958 0.30668,1.169107 0.28113,-2.573066 1.63563,6.040367 0.79226,-4.352027 0.9456,1.023994 0.61336,-3.574732 0.23001,-0.209716 0.15334,0.541067 0.38335,0.760223 0.43446,-0.271217 0.3578,-3.549101 0.0767,2.09792 0.48558,1.641235 0.48557,-1.151809 2.04454,1.232234 0.84338,-0.503453 0.20445,-1.645243 0.15334,2.610218 0.61336,-1.876507 0.0256,2.245488 0.17889,-0.576995 0.79226,-0.91761 0.69004,-1.683645 0.30668,2.171377 0.43446,-0.32295 0.10223,2.078107 1.50785,-1.953587 0.33223,0.978181 0.3578,-5.612576 0.15334,5.897896 0.48557,-2.414673 0.56225,-1.438731 0.33224,5.458443 1.50785,0.01231 0.56225,-4.916361 0.10222,6.668776 0.0511,-2.721591 0.0256,0.244822 0.25557,-1.662339 0.51113,1.951843 0.66448,-3.68769 0.86893,1.335449 0.23001,3.389676 1.43118,-5.610338 1.38006,2.527219 0.66447,-2.074819 0.12779,1.066185 0.51113,-1.238573 1.3034,0.566799 0.10222,3.055265 0.81782,-0.497852 1.25228,-1.928031 0.51113,2.914957 0.81782,-2.004322 0.25557,0.567218 0.0256,2.133168 0.63892,-2.12885 0.12778,-2.170983 0.10223,0.797208 0.3578,-1.658801 1.07338,5.068466 0.38335,-5.80621 0.25557,0.922842 1.91675,-1.574988 1.7123,4.604479 0.79226,0.835567 0.86893,-0.460314 0.0256,1.550488 0.56225,-4.396415 0.97115,-0.07562 0.12778,1.810453 0.12779,-0.04506 0.25557,1.695056 0.69003,-1.386679 0.0256,-2.192464 0.1789,0.805048 0.3578,1.01597 0.28112,-3.657522 0.46002,1.377665 0.0511,-0.04828 0.58781,4.665041 0.0511,-4.344934 0.0767,4.067261 0.48558,-1.694452 0.89449,1.662029 0.33223,-5.142779 0.10223,4.919405 0.33224,-3.19528 0.0255,0.754153 0.25557,1.349175 0.28113,-0.760115 0.25556,-1.109651 0.20446,1.056392 0.25556,0.685609 1.25229,-4.345554 0.20445,6.122821 0.10222,-2.590389 0.71559,-0.01617 0.3578,1.304594 0.15334,-1.531917 0.35779,-1.783724 0.0511,2.444808 0.17889,-1.327509 0.10223,0.386832 0.0767,-2.5717 0.0256,2.085661 0.10222,3.423416 0.12779,-2.456889 0.51113,-0.170627 0.25557,-0.203117 0.10223,-2.058109 0.4089,0.483942 0.3578,2.040686 0.89448,2.449083 0.0256,1.408328 0.0256,-3.220592 0.17889,0.470452 0.56225,-4.529152 0.48558,1.55702 0.48558,1.094476 0.0256,1.831171 0.12778,-0.639937 0.69003,-1.271374 0.46002,-0.225982 0.51114,2.113272 1.02227,0.04496 v 0"
+           style="fill:none;stroke:#4c72b0;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"
+           id="path288"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         id="patch_3"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           d="m 47.367969,180.73125 v -166.32"
+           style="fill:none;stroke:#ffffff;stroke-width:1.25;stroke-linecap:square;stroke-linejoin:miter"
+           id="path291"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         id="patch_4"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           d="m 549.56797,180.73125 v -166.32"
+           style="fill:none;stroke:#ffffff;stroke-width:1.25;stroke-linecap:square;stroke-linejoin:miter"
+           id="path294"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         id="patch_5"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           d="M 47.367969,180.73125 H 549.56797"
+           style="fill:none;stroke:#ffffff;stroke-width:1.25;stroke-linecap:square;stroke-linejoin:miter"
+           id="path297"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         id="patch_6"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           d="M 47.367969,14.41125 H 549.56797"
+           style="fill:none;stroke:#ffffff;stroke-width:1.25;stroke-linecap:square;stroke-linejoin:miter"
+           id="path300"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         id="text_17"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <!-- Discriminator loss -->
+        <defs
+           id="defs308">
+          <path
+             d="M 10.09375,68.296875 C 9.59375,68.296875 9.296875,68 9.296875,67.5 V 0.796875 C 9.296875,0.296875 9.59375,0 10.09375,0 h 21.609375 c 17.390625,0 28.09375,13 28.09375,34.203125 0,21.203125 -10.703125,34.09375 -28.09375,34.09375 z m 3.5,-3.890625 h 18.109375 c 15,0 23.703125,-11.3125 23.703125,-30.203125 C 55.40625,15.296875 46.703125,4 31.703125,4 H 13.59375 Z"
+             id="Neris-Thin-68"
+             inkscape:connector-curvature="0"
+             style="stroke-linecap:butt;stroke-linejoin:round" />
+          <path
+             d="m 40.203125,1.59375 c 0.5,0.109375 0.703125,0.5 0.5,1 L 40,4.796875 c -0.203125,0.40625 -0.59375,0.609375 -1,0.5 L 36.40625,4.5 c -3.203125,-1 -6.3125,-1.40625 -9.109375,-1.40625 -11.59375,0 -17.703125,7.8125 -17.703125,20.703125 0,12.90625 5.90625,20.703125 18,20.703125 2.3125,0 5.109375,-0.296875 8.203125,-1.203125 L 38.203125,42.5 c 0.5,-0.09375 0.890625,0.09375 1.09375,0.59375 L 40,45.296875 c 0.203125,0.5 0,0.90625 -0.5,1 L 37,47 c -3.296875,1 -6.296875,1.59375 -9.5,1.59375 -14.5,0 -22.09375,-9.5 -22.09375,-24.796875 C 5.40625,8.59375 13.09375,-1 27.40625,-1 31,-1 34.296875,-0.203125 37.59375,0.796875 Z"
+             id="Neris-Thin-99"
+             inkscape:connector-curvature="0"
+             style="stroke-linecap:butt;stroke-linejoin:round" />
+          <path
+             d="m 12.296875,46.796875 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 H 9.09375 c -0.5,0 -0.796875,-0.296875 -0.796875,-0.796875 v -46 C 8.296875,0.296875 8.59375,0 9.09375,0 h 2.609375 C 12.203125,0 12.5,0.296875 12.5,0.796875 V 22 c 0,13 4.90625,22.5 16.796875,22.5 7.5,0 12,-5.90625 12,-15.59375 V 0.796875 C 41.296875,0.296875 41.59375,0 42.09375,0 h 2.5 c 0.5,0 0.8125,0.296875 0.8125,0.796875 V 22 c 0,13 5,22.5 17,22.5 7.5,0 11.796875,-5.90625 11.796875,-15.703125 v -28 C 74.203125,0.296875 74.5,0 75,0 h 2.59375 c 0.5,0 0.8125,0.296875 0.8125,0.796875 V 29 c 0,12 -6.109375,19.59375 -15.90625,19.59375 -7.703125,0 -13.203125,-3.1875 -17.296875,-10.296875 C 44.796875,37.59375 44,37.5 43.703125,38.40625 c -2,5.390625 -6.40625,10.1875 -14.203125,10.1875 -7.796875,0 -12.296875,-3.1875 -16.09375,-8.890625 -0.5,-0.796875 -1.109375,-0.703125 -1.109375,0.09375 z"
+             id="Neris-Thin-109"
+             inkscape:connector-curvature="0"
+             style="stroke-linecap:butt;stroke-linejoin:round" />
+          <path
+             id="Neris-Thin-32"
+             d=""
+             inkscape:connector-curvature="0"
+             style="stroke-linecap:butt;stroke-linejoin:round" />
+          <path
+             d="m 12.5,69.296875 c 0,0.5 -0.296875,0.796875 -0.796875,0.796875 H 9.09375 c -0.5,0 -0.796875,-0.296875 -0.796875,-0.796875 V 7 c 0,-5 2.703125,-8 7.109375,-8 0.890625,0 1.796875,0.203125 2.59375,0.40625 0.5,0.1875 0.59375,0.59375 0.40625,1 l -1,2.390625 c -0.203125,0.40625 -0.5,0.5 -1,0.40625 -0.3125,-0.109375 -0.609375,-0.109375 -1,-0.109375 C 13.59375,3.09375 12.5,4.59375 12.5,7 Z"
+             id="Neris-Thin-108"
+             inkscape:connector-curvature="0"
+             style="stroke-linecap:butt;stroke-linejoin:round" />
+        </defs>
+        <g
+           style="fill:#262626;stroke-linecap:butt;stroke-linejoin:round"
+           transform="matrix(0.12,0,0,-0.12,252.22766,8.41125)"
+           id="g346">
+          <use
+             xlink:href="#Neris-Thin-68"
+             id="use310"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             x="0"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="65.699997"
+             xlink:href="#Neris-Thin-105"
+             id="use312"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="89.299988"
+             xlink:href="#Neris-Thin-115"
+             id="use314"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="135.79997"
+             xlink:href="#Neris-Thin-99"
+             id="use316"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="182.19997"
+             xlink:href="#Neris-Thin-114"
+             id="use318"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="218.39996"
+             xlink:href="#Neris-Thin-105"
+             id="use320"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="241.99995"
+             xlink:href="#Neris-Thin-109"
+             id="use322"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="328.19995"
+             xlink:href="#Neris-Thin-105"
+             id="use324"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="351.79993"
+             xlink:href="#Neris-Thin-110"
+             id="use326"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="407.39993"
+             xlink:href="#Neris-Thin-97"
+             id="use328"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="457.49991"
+             xlink:href="#Neris-Thin-116"
+             id="use330"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="489.59988"
+             xlink:href="#Neris-Thin-111"
+             id="use332"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="542.69989"
+             xlink:href="#Neris-Thin-114"
+             id="use334"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="578.8999"
+             xlink:href="#Neris-Thin-32"
+             id="use336"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="600.79987"
+             xlink:href="#Neris-Thin-108"
+             id="use338"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="624.59985"
+             xlink:href="#Neris-Thin-111"
+             id="use340"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="677.69989"
+             xlink:href="#Neris-Thin-115"
+             id="use342"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+          <use
+             x="724.19983"
+             xlink:href="#Neris-Thin-115"
+             id="use344"
+             style="stroke-linecap:butt;stroke-linejoin:round"
+             y="0"
+             width="100%"
+             height="100%" />
+        </g>
+      </g>
+    </g>
   </g>
-  <g id="axes_1">
-   <g id="patch_2">
-    <path d="M 47.367969 180.73125 
-L 549.567969 180.73125 
-L 549.567969 14.41125 
-L 47.367969 14.41125 
-z
-" style="fill:#eaeaf2;"/>
-   </g>
-   <g id="matplotlib.axis_1">
-    <g id="xtick_1">
-     <g id="line2d_1">
-      <path clip-path="url(#pdc0481f6d2)" d="M 69.73522 180.73125 
-L 69.73522 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_1">
-      <!-- 0 -->
-      <defs>
-       <path d="M 31.203125 69.296875 
-C 15.703125 69.296875 6.40625 56 6.40625 34.203125 
-C 6.40625 12.296875 15.703125 -1 31.203125 -1 
-C 46.59375 -1 56 12.296875 56 34.203125 
-C 56 56 46.59375 69.296875 31.203125 69.296875 
-z
-M 31.203125 65.296875 
-C 44 65.296875 51.703125 53.703125 51.703125 34.203125 
-C 51.703125 14.59375 44 3.09375 31.203125 3.09375 
-C 18.296875 3.09375 10.703125 14.59375 10.703125 34.203125 
-C 10.703125 53.703125 18.296875 65.296875 31.203125 65.296875 
-z
-" id="Neris-Thin-48"/>
-      </defs>
-      <g style="fill:#262626;" transform="translate(66.302877 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="xtick_2">
-     <g id="line2d_2">
-      <path clip-path="url(#pdc0481f6d2)" d="M 133.627049 180.73125 
-L 133.627049 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_2">
-      <!-- 2500 -->
-      <defs>
-       <path d="M 9 65.40625 
-C 8.5 65.296875 8.296875 64.90625 8.5 64.40625 
-L 9.203125 62.203125 
-C 9.296875 61.703125 9.703125 61.5 10.203125 61.703125 
-L 14.796875 63.203125 
-C 18.296875 64.40625 23.296875 65.296875 28.5 65.296875 
-C 38.59375 65.296875 45.203125 60.203125 45.203125 52.5 
-C 45.203125 48 42.40625 43.90625 36.5 39.703125 
-L 19.09375 27.09375 
-C 10.796875 21.203125 7.40625 13.203125 7.40625 3.59375 
-L 7.40625 0.796875 
-C 7.40625 0.296875 7.703125 0 8.203125 0 
-L 47.796875 0 
-C 48.296875 0 48.59375 0.296875 48.59375 0.796875 
-L 48.59375 3.203125 
-C 48.59375 3.703125 48.296875 4 47.796875 4 
-L 11.59375 4 
-C 11.59375 11.90625 14.5 18.90625 21.5 23.796875 
-L 38.796875 36.5 
-C 46 41.703125 49.5 46.796875 49.5 52.5 
-C 49.5 63 41.203125 69.296875 28.5 69.296875 
-C 22.59375 69.296875 17.59375 68.09375 13.59375 66.90625 
-z
-" id="Neris-Thin-50"/>
-       <path d="M 47 67.40625 
-C 47.203125 67.90625 46.90625 68.296875 46.40625 68.296875 
-L 11 68.296875 
-C 10.5 68.296875 10.203125 68 10.203125 67.5 
-L 10.203125 38.703125 
-C 10.203125 38.296875 10.296875 38 10.703125 37.703125 
-L 11.59375 36.90625 
-C 11.90625 36.59375 12.203125 36.5 12.59375 36.59375 
-L 18.09375 37.296875 
-C 22.09375 38 26.5 38.203125 28.90625 38.203125 
-C 40.796875 38.203125 47.40625 31.796875 47.40625 20.90625 
-C 47.40625 9.796875 39.90625 3.09375 27.203125 3.09375 
-C 22 3.09375 17.203125 4.09375 13.59375 5.203125 
-L 9 6.703125 
-C 8.59375 6.796875 8.203125 6.59375 8 6.203125 
-L 7.203125 3.90625 
-C 7 3.40625 7.203125 3 7.703125 2.90625 
-L 12.296875 1.40625 
-C 16.203125 0.296875 21.296875 -1 27.203125 -1 
-C 42.59375 -1 51.59375 7.203125 51.59375 20.90625 
-C 51.59375 34.296875 43.5 42.296875 29 42.296875 
-C 26.703125 42.296875 22.203125 41.90625 18.09375 41.203125 
-L 15.296875 40.796875 
-C 14.296875 40.59375 14 40.90625 14.203125 41.90625 
-C 14.40625 43.5 14.40625 45.40625 14.40625 46.90625 
-L 14.40625 64.40625 
-L 45.40625 64.40625 
-C 45.90625 64.40625 46.203125 64.59375 46.296875 65.09375 
-z
-" id="Neris-Thin-53"/>
-      </defs>
-      <g style="fill:#262626;" transform="translate(120.442518 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-50"/>
-       <use x="56.399994" xlink:href="#Neris-Thin-53"/>
-       <use x="114.899979" xlink:href="#Neris-Thin-48"/>
-       <use x="177.299973" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="xtick_3">
-     <g id="line2d_3">
-      <path clip-path="url(#pdc0481f6d2)" d="M 197.518879 180.73125 
-L 197.518879 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_3">
-      <!-- 5000 -->
-      <g style="fill:#262626;" transform="translate(184.004347 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-53"/>
-       <use x="58.499985" xlink:href="#Neris-Thin-48"/>
-       <use x="120.899979" xlink:href="#Neris-Thin-48"/>
-       <use x="183.299973" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="xtick_4">
-     <g id="line2d_4">
-      <path clip-path="url(#pdc0481f6d2)" d="M 261.410708 180.73125 
-L 261.410708 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_4">
-      <!-- 7500 -->
-      <defs>
-       <path d="M 50.796875 67.703125 
-C 50.59375 68.09375 50.296875 68.296875 49.90625 68.296875 
-L 5.796875 68.296875 
-C 5.296875 68.296875 5 68 5 67.5 
-L 5 65.203125 
-C 5 64.703125 5.296875 64.40625 5.796875 64.40625 
-L 44.59375 64.40625 
-C 45.59375 64.40625 46 64.09375 45.5 63.203125 
-C 44.296875 61.59375 43.40625 60.09375 42.796875 58.703125 
-L 16.59375 0.90625 
-C 16.40625 0.40625 16.59375 0 17.203125 0 
-L 20.09375 0 
-C 20.59375 0 20.90625 0.203125 21.09375 0.59375 
-L 46.90625 57.59375 
-C 48.203125 60.40625 49.5 63.203125 51.203125 65.796875 
-C 51.5 66.09375 51.5 66.5 51.296875 66.90625 
-z
-" id="Neris-Thin-55"/>
-      </defs>
-      <g style="fill:#262626;" transform="translate(248.226177 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-55"/>
-       <use x="56.399994" xlink:href="#Neris-Thin-53"/>
-       <use x="114.899979" xlink:href="#Neris-Thin-48"/>
-       <use x="177.299973" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="xtick_5">
-     <g id="line2d_5">
-      <path clip-path="url(#pdc0481f6d2)" d="M 325.302537 180.73125 
-L 325.302537 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_5">
-      <!-- 10000 -->
-      <defs>
-       <path d="M 19.796875 0 
-C 20.296875 0 20.59375 0.296875 20.59375 0.796875 
-L 20.59375 67.796875 
-C 20.59375 68.203125 20.40625 68.5 20.09375 68.703125 
-L 19.703125 69 
-C 19.40625 69.203125 19 69.203125 18.59375 69 
-L 5.59375 62.09375 
-C 5.09375 61.796875 5 61.5 5.203125 61 
-L 6.296875 58.703125 
-C 6.59375 58.296875 7 58.09375 7.40625 58.40625 
-L 15.5 62.796875 
-C 15.703125 62.90625 15.90625 63 16.09375 63 
-C 16.5 63 16.703125 62.703125 16.703125 62.09375 
-C 16.59375 60.40625 16.40625 59 16.40625 57.296875 
-L 16.40625 0.796875 
-C 16.40625 0.296875 16.703125 0 17.203125 0 
-z
-" id="Neris-Thin-49"/>
-      </defs>
-      <g style="fill:#262626;" transform="translate(309.928318 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-49"/>
-       <use x="29.899994" xlink:href="#Neris-Thin-48"/>
-       <use x="92.299988" xlink:href="#Neris-Thin-48"/>
-       <use x="154.699982" xlink:href="#Neris-Thin-48"/>
-       <use x="217.099976" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="xtick_6">
-     <g id="line2d_6">
-      <path clip-path="url(#pdc0481f6d2)" d="M 389.194366 180.73125 
-L 389.194366 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_6">
-      <!-- 12500 -->
-      <g style="fill:#262626;" transform="translate(374.364991 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-49"/>
-       <use x="29.899994" xlink:href="#Neris-Thin-50"/>
-       <use x="86.299988" xlink:href="#Neris-Thin-53"/>
-       <use x="144.799973" xlink:href="#Neris-Thin-48"/>
-       <use x="207.199966" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="xtick_7">
-     <g id="line2d_7">
-      <path clip-path="url(#pdc0481f6d2)" d="M 453.086195 180.73125 
-L 453.086195 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_7">
-      <!-- 15000 -->
-      <g style="fill:#262626;" transform="translate(437.92682 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-49"/>
-       <use x="29.899994" xlink:href="#Neris-Thin-53"/>
-       <use x="88.399979" xlink:href="#Neris-Thin-48"/>
-       <use x="150.799973" xlink:href="#Neris-Thin-48"/>
-       <use x="213.199966" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="xtick_8">
-     <g id="line2d_8">
-      <path clip-path="url(#pdc0481f6d2)" d="M 516.978025 180.73125 
-L 516.978025 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_8">
-      <!-- 17500 -->
-      <g style="fill:#262626;" transform="translate(502.14865 197.941563)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-49"/>
-       <use x="29.899994" xlink:href="#Neris-Thin-55"/>
-       <use x="86.299988" xlink:href="#Neris-Thin-53"/>
-       <use x="144.799973" xlink:href="#Neris-Thin-48"/>
-       <use x="207.199966" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="text_9">
-     <!-- Iteration -->
-     <defs>
-      <path d="M 13.59375 67.5 
-C 13.59375 68 13.296875 68.296875 12.796875 68.296875 
-L 10.09375 68.296875 
-C 9.59375 68.296875 9.296875 68 9.296875 67.5 
-L 9.296875 0.796875 
-C 9.296875 0.296875 9.59375 0 10.09375 0 
-L 12.796875 0 
-C 13.296875 0 13.59375 0.296875 13.59375 0.796875 
-z
-" id="Neris-Thin-73"/>
-      <path d="M 15.296875 47.59375 
-L 15.296875 61 
-C 15.296875 61.59375 14.90625 61.90625 14.40625 61.703125 
-L 11.796875 60.796875 
-C 11.296875 60.703125 11.09375 60.40625 11.09375 59.90625 
-L 11.09375 47.59375 
-L 6.59375 47.59375 
-C 6.09375 47.59375 5.796875 47.296875 5.796875 46.796875 
-L 5.796875 44.40625 
-C 5.796875 43.90625 6.09375 43.59375 6.59375 43.59375 
-L 11.09375 43.59375 
-L 11.09375 10.296875 
-C 11.09375 3.09375 14.90625 -1 21.296875 -1 
-C 22.796875 -1 24.296875 -0.703125 25.40625 -0.203125 
-C 25.90625 0 26 0.296875 25.796875 0.796875 
-L 24.90625 3.09375 
-C 24.703125 3.5 24.40625 3.703125 23.90625 3.5 
-C 23 3.203125 22.09375 3.09375 21.296875 3.09375 
-C 17.5 3.09375 15.296875 5.703125 15.296875 10.40625 
-L 15.296875 43.59375 
-L 26.40625 43.59375 
-C 26.90625 43.59375 27.203125 43.90625 27.203125 44.40625 
-L 27.203125 46.796875 
-C 27.203125 47.296875 26.90625 47.59375 26.40625 47.59375 
-z
-" id="Neris-Thin-116"/>
-      <path d="M 40.203125 1.296875 
-C 40.703125 1.40625 40.90625 1.796875 40.703125 2.296875 
-L 40 4.59375 
-C 39.796875 5.09375 39.40625 5.296875 38.90625 5.203125 
-L 36.5 4.40625 
-C 33.40625 3.40625 30.296875 3.09375 26.59375 3.09375 
-C 17.40625 3.09375 11.40625 8.703125 10 18.59375 
-L 31.40625 22.203125 
-C 39.90625 23.703125 44.09375 27.703125 44.09375 34.296875 
-C 44.09375 43.296875 37.59375 48.59375 26.59375 48.59375 
-C 13.5 48.59375 5.40625 39.09375 5.40625 23.796875 
-C 5.40625 8.5 13.40625 -1 26.59375 -1 
-C 30.59375 -1 34.09375 -0.5 37.703125 0.59375 
-z
-M 9.59375 22.5 
-C 9.703125 37.09375 15.90625 44.5 26.59375 44.5 
-C 35 44.5 39.90625 40.796875 39.90625 34.296875 
-C 39.90625 30 36.703125 27.203125 30.59375 26.09375 
-z
-" id="Neris-Thin-101"/>
-      <path d="M 30.796875 47.796875 
-C 30.796875 48.296875 30.5 48.59375 30 48.59375 
-C 22.203125 48.296875 17 44.5 13.40625 38.09375 
-C 13 37.5 12.40625 37.59375 12.296875 38.296875 
-L 12.296875 46.796875 
-C 12.296875 47.296875 12 47.59375 11.5 47.59375 
-L 9.09375 47.59375 
-C 8.59375 47.59375 8.296875 47.296875 8.296875 46.796875 
-L 8.296875 0.796875 
-C 8.296875 0.296875 8.59375 0 9.09375 0 
-L 11.703125 0 
-C 12.203125 0 12.5 0.296875 12.5 0.796875 
-L 12.5 18.296875 
-C 12.5 34.40625 19.296875 44 30 44.5 
-C 30.5 44.5 30.796875 44.796875 30.796875 45.296875 
-z
-" id="Neris-Thin-114"/>
-      <path d="M 9.703125 46 
-C 9.203125 45.90625 9 45.5 9.09375 45 
-L 9.90625 42.703125 
-C 10 42.203125 10.40625 42 10.90625 42.09375 
-L 14.40625 43.296875 
-C 17 44 20.296875 44.5 24 44.5 
-C 33.296875 44.5 38.5 38.796875 38.5 29.09375 
-L 38.5 27.40625 
-L 22.09375 27.40625 
-C 10.703125 27.296875 4.90625 21.5 4.90625 13.09375 
-C 4.90625 4.40625 10.59375 -1 20.296875 -1 
-C 28.296875 -1 33.59375 1.40625 37.203125 6.09375 
-C 38 7.203125 38.796875 7.40625 38.90625 6.09375 
-L 38.90625 0.796875 
-C 38.90625 0.296875 39.203125 0 39.703125 0 
-L 42 0 
-C 42.5 0 42.796875 0.296875 42.796875 0.796875 
-L 42.796875 29.09375 
-C 42.796875 41.09375 35.59375 48.59375 24.09375 48.59375 
-C 19.796875 48.59375 16.09375 48 13.40625 47.09375 
-z
-M 38.5 23.40625 
-L 38.5 21.703125 
-C 38.5 10 31.796875 3 20.40625 3 
-C 13.09375 3 9.09375 6.796875 9.09375 13.203125 
-C 9.09375 19.203125 13.203125 23.40625 22.09375 23.40625 
-z
-" id="Neris-Thin-97"/>
-      <path d="M 12.203125 70.59375 
-C 10.203125 70.59375 9 69.40625 9 67.40625 
-C 9 65.203125 10.203125 64.09375 12.203125 64.09375 
-C 14.203125 64.09375 15.296875 65.203125 15.296875 67.40625 
-C 15.296875 69.40625 14.203125 70.59375 12.203125 70.59375 
-z
-M 15.296875 46.796875 
-C 15.296875 47.296875 15 47.59375 14.5 47.59375 
-L 6.59375 47.59375 
-C 6.09375 47.59375 5.796875 47.296875 5.796875 46.796875 
-L 5.796875 44.40625 
-C 5.796875 43.90625 6.09375 43.59375 6.59375 43.59375 
-L 11.09375 43.59375 
-L 11.09375 0.796875 
-C 11.09375 0.296875 11.40625 0 11.90625 0 
-L 14.5 0 
-C 15 0 15.296875 0.296875 15.296875 0.796875 
-z
-" id="Neris-Thin-105"/>
-      <path d="M 26.59375 48.59375 
-C 13.5 48.59375 5.40625 39.09375 5.40625 23.796875 
-C 5.40625 8.59375 13.5 -1 26.59375 -1 
-C 39.703125 -1 47.796875 8.59375 47.796875 23.796875 
-C 47.796875 39.09375 39.703125 48.59375 26.59375 48.59375 
-z
-M 26.59375 44.5 
-C 37.203125 44.5 43.5 36.796875 43.5 23.796875 
-C 43.5 10.90625 37.203125 3.09375 26.59375 3.09375 
-C 16 3.09375 9.59375 10.90625 9.59375 23.796875 
-C 9.59375 36.796875 16 44.5 26.59375 44.5 
-z
-" id="Neris-Thin-111"/>
-      <path d="M 12.296875 46.796875 
-C 12.296875 47.296875 12 47.59375 11.5 47.59375 
-L 9.09375 47.59375 
-C 8.59375 47.59375 8.296875 47.296875 8.296875 46.796875 
-L 8.296875 0.796875 
-C 8.296875 0.296875 8.59375 0 9.09375 0 
-L 11.703125 0 
-C 12.203125 0 12.5 0.296875 12.5 0.796875 
-L 12.5 22 
-C 12.5 36.296875 19.09375 44.5 30.296875 44.5 
-C 38.59375 44.5 43.59375 38.59375 43.59375 28.796875 
-L 43.59375 0.796875 
-C 43.59375 0.296875 43.90625 0 44.40625 0 
-L 46.90625 0 
-C 47.40625 0 47.703125 0.296875 47.703125 0.796875 
-L 47.703125 29 
-C 47.703125 41 41.203125 48.59375 30.5 48.59375 
-C 22.5 48.59375 17.09375 45.296875 13.40625 39.59375 
-C 12.90625 38.796875 12.296875 38.796875 12.296875 39.703125 
-z
-" id="Neris-Thin-110"/>
-     </defs>
-     <g style="fill:#262626;" transform="translate(277.157656 212.662813)scale(0.12 -0.12)">
-      <use xlink:href="#Neris-Thin-73"/>
-      <use x="22.899994" xlink:href="#Neris-Thin-116"/>
-      <use x="54.999985" xlink:href="#Neris-Thin-101"/>
-      <use x="104.499969" xlink:href="#Neris-Thin-114"/>
-      <use x="140.699966" xlink:href="#Neris-Thin-97"/>
-      <use x="190.799957" xlink:href="#Neris-Thin-116"/>
-      <use x="222.899948" xlink:href="#Neris-Thin-105"/>
-      <use x="246.499939" xlink:href="#Neris-Thin-111"/>
-      <use x="299.59993" xlink:href="#Neris-Thin-110"/>
-     </g>
-    </g>
-   </g>
-   <g id="matplotlib.axis_2">
-    <g id="ytick_1">
-     <g id="line2d_9">
-      <path clip-path="url(#pdc0481f6d2)" d="M 47.367969 176.268095 
-L 549.567969 176.268095 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_10">
-      <!-- 0.00 -->
-      <defs>
-       <path d="M 10.59375 6.90625 
-C 8.203125 6.90625 6.90625 5.40625 6.90625 3 
-C 6.90625 0.5 8.203125 -1 10.59375 -1 
-C 13 -1 14.40625 0.5 14.40625 3 
-C 14.40625 5.40625 13 6.90625 10.59375 6.90625 
-z
-" id="Neris-Thin-46"/>
-      </defs>
-      <g style="fill:#262626;" transform="translate(14.93125 180.123251)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-48"/>
-       <use x="62.399994" xlink:href="#Neris-Thin-46"/>
-       <use x="83.699982" xlink:href="#Neris-Thin-48"/>
-       <use x="146.099976" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="ytick_2">
-     <g id="line2d_10">
-      <path clip-path="url(#pdc0481f6d2)" d="M 47.367969 148.134043 
-L 549.567969 148.134043 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_11">
-      <!-- 0.05 -->
-      <g style="fill:#262626;" transform="translate(15.360937 151.989199)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-48"/>
-       <use x="62.399994" xlink:href="#Neris-Thin-46"/>
-       <use x="83.699982" xlink:href="#Neris-Thin-48"/>
-       <use x="146.099976" xlink:href="#Neris-Thin-53"/>
-      </g>
-     </g>
-    </g>
-    <g id="ytick_3">
-     <g id="line2d_11">
-      <path clip-path="url(#pdc0481f6d2)" d="M 47.367969 119.999991 
-L 549.567969 119.999991 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_12">
-      <!-- 0.10 -->
-      <g style="fill:#262626;" transform="translate(18.50625 123.855148)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-48"/>
-       <use x="62.399994" xlink:href="#Neris-Thin-46"/>
-       <use x="83.699982" xlink:href="#Neris-Thin-49"/>
-       <use x="113.599976" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="ytick_4">
-     <g id="line2d_12">
-      <path clip-path="url(#pdc0481f6d2)" d="M 47.367969 91.86594 
-L 549.567969 91.86594 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_13">
-      <!-- 0.15 -->
-      <g style="fill:#262626;" transform="translate(18.935937 95.721096)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-48"/>
-       <use x="62.399994" xlink:href="#Neris-Thin-46"/>
-       <use x="83.699982" xlink:href="#Neris-Thin-49"/>
-       <use x="113.599976" xlink:href="#Neris-Thin-53"/>
-      </g>
-     </g>
-    </g>
-    <g id="ytick_5">
-     <g id="line2d_13">
-      <path clip-path="url(#pdc0481f6d2)" d="M 47.367969 63.731888 
-L 549.567969 63.731888 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_14">
-      <!-- 0.20 -->
-      <g style="fill:#262626;" transform="translate(15.59125 67.587044)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-48"/>
-       <use x="62.399994" xlink:href="#Neris-Thin-46"/>
-       <use x="83.699982" xlink:href="#Neris-Thin-50"/>
-       <use x="140.099976" xlink:href="#Neris-Thin-48"/>
-      </g>
-     </g>
-    </g>
-    <g id="ytick_6">
-     <g id="line2d_14">
-      <path clip-path="url(#pdc0481f6d2)" d="M 47.367969 35.597836 
-L 549.567969 35.597836 
-" style="fill:none;stroke:#ffffff;stroke-linecap:round;"/>
-     </g>
-     <g id="text_15">
-      <!-- 0.25 -->
-      <g style="fill:#262626;" transform="translate(16.020937 39.452992)scale(0.11 -0.11)">
-       <use xlink:href="#Neris-Thin-48"/>
-       <use x="62.399994" xlink:href="#Neris-Thin-46"/>
-       <use x="83.699982" xlink:href="#Neris-Thin-50"/>
-       <use x="140.099976" xlink:href="#Neris-Thin-53"/>
-      </g>
-     </g>
-    </g>
-    <g id="text_16">
-     <!-- Loss -->
-     <defs>
-      <path d="M 13.59375 4 
-L 13.59375 67.5 
-C 13.59375 68 13.296875 68.296875 12.796875 68.296875 
-L 10.09375 68.296875 
-C 9.59375 68.296875 9.296875 68 9.296875 67.5 
-L 9.296875 0.796875 
-C 9.296875 0.296875 9.59375 0 10.09375 0 
-L 49.09375 0 
-C 49.59375 0 49.90625 0.296875 49.90625 0.796875 
-L 49.90625 3.203125 
-C 49.90625 3.703125 49.59375 4 49.09375 4 
-z
-" id="Neris-Thin-76"/>
-      <path d="M 29.296875 20.796875 
-C 34.59375 19.296875 36.90625 16.703125 36.90625 12.40625 
-C 36.90625 6.59375 31.90625 3.09375 23.296875 3.09375 
-C 17.09375 3.09375 12.90625 3.796875 9.703125 5.09375 
-L 7.703125 5.90625 
-C 7.296875 6.09375 6.90625 6 6.703125 5.5 
-L 5.703125 3.296875 
-C 5.5 2.90625 5.703125 2.5 6.203125 2.296875 
-L 8.203125 1.5 
-C 11.90625 0 17 -1 23.296875 -1 
-C 34.59375 -1 41.09375 4 41.09375 12.40625 
-C 41.09375 18.59375 38 22.5 30.59375 24.5 
-L 18.296875 28.09375 
-C 13.09375 29.59375 10.796875 32.203125 10.796875 36.296875 
-C 10.796875 41.296875 15.5 44.5 23.296875 44.5 
-C 27 44.5 30.796875 44 33.40625 43.203125 
-L 36.90625 42.09375 
-C 37.40625 42 37.796875 42.203125 37.90625 42.59375 
-L 38.703125 44.90625 
-C 38.90625 45.40625 38.703125 45.796875 38.203125 45.90625 
-L 34.5 47.09375 
-C 31.59375 48 27.5 48.59375 23.203125 48.59375 
-C 12.703125 48.59375 6.59375 43.90625 6.59375 36.296875 
-C 6.59375 30.09375 9.90625 26.296875 16.796875 24.40625 
-z
-" id="Neris-Thin-115"/>
-     </defs>
-     <g style="fill:#262626;" transform="translate(8.41125 109.684687)rotate(-90)scale(0.12 -0.12)">
-      <use xlink:href="#Neris-Thin-76"/>
-      <use x="55.799988" xlink:href="#Neris-Thin-111"/>
-      <use x="108.899979" xlink:href="#Neris-Thin-115"/>
-      <use x="155.399963" xlink:href="#Neris-Thin-115"/>
-     </g>
-    </g>
-   </g>
-   <g id="line2d_15">
-    <path clip-path="url(#pdc0481f6d2)" d="M 70.195241 164.088014 
-L 70.808603 165.108677 
-L 70.885273 173.17125 
-L 71.549748 160.745118 
-L 72.137553 150.750654 
-L 73.773184 170.261881 
-L 75.587712 130.546011 
-L 75.715496 92.019056 
-L 76.252187 77.264104 
-L 76.712208 55.957164 
-L 77.606694 51.325335 
-L 77.657807 54.576992 
-L 77.862261 54.621791 
-L 78.603406 51.991491 
-L 79.114541 48.696595 
-L 81.031296 51.384103 
-L 81.491317 59.235007 
-L 81.849111 61.570085 
-L 83.433628 68.164649 
-L 84.12366 59.111493 
-L 84.532568 61.504844 
-L 84.711465 80.450797 
-L 84.737022 71.67212 
-L 85.580394 63.286915 
-L 85.938188 63.301471 
-L 86.142642 60.982249 
-L 86.270426 82.783904 
-L 86.62822 70.895412 
-L 86.883787 76.952901 
-L 88.187181 68.714947 
-L 88.391634 73.55105 
-L 89.056109 60.327529 
-L 89.28612 60.780297 
-L 89.43946 75.070122 
-L 89.797255 76.797568 
-L 90.027265 72.660765 
-L 90.231719 69.552451 
-L 90.385059 78.472836 
-L 91.100648 47.079306 
-L 93.886332 72.196417 
-L 94.320796 69.055496 
-L 94.550807 78.516126 
-L 94.576363 76.862993 
-L 94.729704 56.469061 
-L 94.883044 73.161133 
-L 95.343065 87.835844 
-L 95.419736 80.723305 
-L 96.902026 60.21551 
-L 97.132037 82.505217 
-L 97.285377 77.528956 
-L 97.668728 80.779364 
-L 97.822068 69.891927 
-L 97.949852 79.84755 
-L 99.278802 78.700755 
-L 99.432143 68.544773 
-L 99.892164 88.222156 
-L 100.224401 86.350663 
-L 101.527795 85.525803 
-L 101.962259 84.904638 
-L 103.367879 54.90265 
-L 103.444549 65.580246 
-L 103.802344 85.599864 
-L 103.904571 68.306315 
-L 105.131294 70.343261 
-L 105.310191 62.50833 
-L 105.872439 71.118577 
-L 106.17912 83.872628 
-L 106.434687 86.122367 
-L 107.201389 91.394973 
-L 107.482513 75.637022 
-L 107.686967 71.016746 
-L 107.840307 74.338096 
-L 108.658123 82.50759 
-L 109.399268 64.615212 
-L 110.217083 83.289504 
-L 110.753775 69.701512 
-L 111.64826 71.028987 
-L 112.721643 76.522938 
-L 112.951654 74.877788 
-L 113.104994 87.015168 
-L 113.232778 77.535932 
-L 113.411675 90.163812 
-L 113.641685 75.625317 
-L 113.99948 98.380444 
-L 114.127263 62.730404 
-L 114.357274 72.830167 
-L 115.251759 86.548624 
-L 116.401812 80.66084 
-L 116.861834 80.684132 
-L 117.091844 87.878589 
-L 117.424082 92.464144 
-L 117.705206 80.953772 
-L 119.161939 92.891708 
-L 119.494177 70.017696 
-L 120.005312 79.418175 
-L 120.87424 87.530863 
-L 121.768726 75.482158 
-L 122.714325 76.997943 
-L 122.790995 88.129087 
-L 122.816552 82.247374 
-L 123.021006 58.922873 
-L 123.123233 92.513068 
-L 123.30213 91.752811 
-L 124.656637 68.097085 
-L 124.835534 96.227773 
-L 125.065544 83.370407 
-L 125.627792 63.653784 
-L 125.730019 94.637282 
-L 126.241154 76.377893 
-L 126.752289 77.044259 
-L 126.905629 72.424831 
-L 127.033413 91.046954 
-L 127.416764 78.296994 
-L 127.544547 81.38059 
-L 128.030125 89.595755 
-L 128.439033 75.55637 
-L 128.6946 89.909255 
-L 129.001281 81.842984 
-L 129.665756 80.522192 
-L 129.895767 98.096147 
-L 130.790252 80.511862 
-L 130.815809 92.914389 
-L 130.866922 82.807499 
-L 131.991419 92.981859 
-L 132.195873 68.36001 
-L 132.425883 75.397608 
-L 132.476997 73.33238 
-L 132.60478 83.624435 
-L 133.243699 82.121781 
-L 133.269255 82.284249 
-L 133.524823 94.749308 
-L 133.70372 79.848313 
-L 134.061514 81.997923 
-L 134.214854 91.95156 
-L 134.444865 81.46494 
-L 134.828216 71.769373 
-L 134.981556 95.249877 
-L 136.336063 95.938672 
-L 138.355045 84.850993 
-L 138.482828 61.189063 
-L 138.815066 91.76263 
-L 139.760665 84.285771 
-L 140.118459 94.775309 
-L 141.012945 83.983581 
-L 143.134154 87.427866 
-L 143.747515 76.807143 
-L 144.360877 82.552498 
-L 145.562043 74.583278 
-L 145.766497 96.663772 
-L 147.172117 74.647739 
-L 147.453241 84.349024 
-L 148.935532 85.135701 
-L 150.366709 73.463834 
-L 150.520049 66.982202 
-L 150.928957 90.240011 
-L 151.388978 79.077399 
-L 151.414535 81.652637 
-L 152.283464 80.915212 
-L 152.539031 86.099829 
-L 152.692371 72.357871 
-L 152.717928 81.131182 
-L 153.356846 105.935145 
-L 154.200218 70.204236 
-L 155.222488 83.158294 
-L 156.014746 91.65918 
-L 156.832562 84.454142 
-L 157.39481 83.772633 
-L 157.880388 79.615045 
-L 158.263739 91.323335 
-L 158.672647 82.707437 
-L 159.413792 94.751681 
-L 159.490462 100.132767 
-L 160.12938 85.012146 
-L 161.739454 81.41677 
-L 162.199475 77.941227 
-L 162.250589 78.83599 
-L 162.455043 73.146871 
-L 163.170631 74.307274 
-L 163.528426 88.884741 
-L 164.959603 75.315975 
-L 165.061829 92.829763 
-L 165.342953 82.100484 
-L 166.671904 89.77283 
-L 166.799687 80.037671 
-L 167.208595 76.862993 
-L 167.336379 97.229582 
-L 167.387492 80.590476 
-L 167.643059 93.452202 
-L 168.486431 71.374433 
-L 168.793112 67.049991 
-L 170.122062 89.985371 
-L 170.403186 81.609624 
-L 170.837651 87.277975 
-L 171.553239 76.507511 
-L 172.524395 76.843113 
-L 172.882189 81.725768 
-L 174.338923 73.373355 
-L 174.466707 67.635563 
-L 174.747831 71.696737 
-L 176.613472 84.950988 
-L 176.894596 75.198146 
-L 176.920153 67.726696 
-L 176.971266 75.013258 
-L 177.09905 75.11913 
-L 177.124607 100.439392 
-L 177.763525 73.541022 
-L 177.891309 87.39707 
-L 178.172433 70.786396 
-L 178.683567 76.195939 
-L 178.760238 82.153508 
-L 179.169145 80.762008 
-L 179.731393 82.084922 
-L 180.063631 91.184377 
-L 180.114744 75.284717 
-L 181.392581 80.099625 
-L 182.005943 78.697283 
-L 182.18484 83.693156 
-L 182.951542 80.502748 
-L 183.028212 94.193283 
-L 184.536059 73.821085 
-L 184.970523 56.628628 
-L 185.583885 84.196928 
-L 186.733938 75.356808 
-L 186.810608 70.099848 
-L 187.219516 74.494804 
-L 188.011774 77.97895 
-L 188.727363 61.973241 
-L 189.034044 86.345431 
-L 189.238498 67.237446 
-L 190.184097 71.16569 
-L 190.31188 77.152018 
-L 191.129696 64.744754 
-L 191.33415 77.543076 
-L 191.56416 83.623832 
-L 192.075295 76.978809 
-L 192.100852 73.035146 
-L 192.458646 84.90338 
-L 193.429802 74.167109 
-L 193.736482 63.20073 
-L 194.22206 81.578157 
-L 194.809865 79.181343 
-L 195.321 78.311441 
-L 196.547723 79.292045 
-L 196.777733 79.634372 
-L 196.854404 74.116625 
-L 198.796715 73.314672 
-L 198.847829 58.533694 
-L 198.873385 72.796797 
-L 200.227892 81.043848 
-L 200.739027 69.048453 
-L 200.943481 58.925179 
-L 202.630225 67.529565 
-L 202.834679 63.265577 
-L 203.626938 76.009382 
-L 204.904774 74.64483 
-L 205.927043 69.551017 
-L 206.335951 62.436407 
-L 206.693745 72.746196 
-L 207.230437 73.795025 
-L 208.814954 65.257498 
-L 208.942738 63.23473 
-L 210.169461 76.15187 
-L 210.680595 57.024465 
-L 210.731709 70.023037 
-L 211.549524 70.857179 
-L 212.162886 69.467062 
-L 212.52068 59.090213 
-L 213.61962 58.412947 
-L 214.335208 70.977028 
-L 214.386322 61.72463 
-L 214.488548 69.292813 
-L 214.871899 71.682877 
-L 215.919725 70.312297 
-L 215.996396 66.256934 
-L 217.350902 77.198201 
-L 218.143161 70.983786 
-L 218.168718 56.395486 
-L 218.603182 74.526012 
-L 218.679852 68.010858 
-L 219.548781 74.533575 
-L 219.599895 71.794963 
-L 219.778792 78.339077 
-L 220.698834 76.425384 
-L 221.235526 72.625147 
-L 221.848887 75.252009 
-L 221.976671 76.494783 
-L 222.130011 61.752902 
-L 222.820043 77.639206 
-L 223.331178 75.236238 
-L 223.458961 70.190117 
-L 223.842312 69.941429 
-L 223.970096 70.99176 
-L 225.069035 72.292379 
-L 225.707954 61.043641 
-L 225.759067 69.993229 
-L 226.167975 57.103532 
-L 226.423542 81.986118 
-L 227.701379 64.376385 
-L 228.186957 65.336305 
-L 228.468081 67.373528 
-L 228.519194 72.950671 
-L 228.672535 66.758585 
-L 229.004772 76.249735 
-L 229.464793 55.723913 
-L 230.461506 74.997847 
-L 231.049311 72.875738 
-L 231.790456 65.956899 
-L 232.07158 67.799583 
-L 232.352704 80.088607 
-L 232.684941 82.178528 
-L 233.298303 76.152289 
-L 235.726193 62.455892 
-L 235.751749 63.311222 
-L 235.853976 73.81348 
-L 236.365111 68.792546 
-L 236.390668 62.325747 
-L 236.620678 62.899522 
-L 237.745174 63.590027 
-L 237.924071 59.776107 
-L 238.000742 72.34054 
-L 238.48632 68.484756 
-L 239.866383 71.237353 
-L 240.096394 67.452284 
-L 240.147507 58.631877 
-L 240.249734 67.040131 
-L 240.403074 66.937646 
-L 240.479745 68.893933 
-L 240.658642 51.473382 
-L 240.863096 59.44453 
-L 240.939766 67.792397 
-L 241.246447 70.24361 
-L 241.936478 61.65689 
-L 242.038705 57.123127 
-L 242.319829 67.564605 
-L 244.338811 67.852364 
-L 244.696605 83.000152 
-L 244.901059 58.740223 
-L 245.258853 59.568454 
-L 245.28441 64.039375 
-L 245.948885 69.419337 
-L 246.945598 68.584952 
-L 247.686743 60.607465 
-L 247.763413 37.63672 
-L 248.427888 66.185908 
-L 248.887909 69.958198 
-L 248.990136 63.666612 
-L 249.629055 72.628501 
-L 250.958005 63.054167 
-L 251.341356 81.29355 
-L 251.545809 68.861333 
-L 251.571366 58.045509 
-L 252.133614 68.849536 
-L 252.593635 61.960103 
-L 253.615905 58.720905 
-L 254.152596 74.60673 
-L 254.944855 51.718858 
-L 256.299361 60.770571 
-L 256.580486 63.493713 
-L 257.296074 59.979895 
-L 257.321631 71.440261 
-L 257.807209 61.863277 
-L 258.395013 62.905123 
-L 258.880591 50.896597 
-L 259.877304 58.655262 
-L 259.953974 67.400359 
-L 260.132871 61.733123 
-L 260.388439 62.587212 
-L 260.465109 66.411219 
-L 260.592892 63.942985 
-L 260.84846 63.339059 
-L 261.691832 68.342696 
-L 262.17741 57.7525 
-L 264.196392 56.57438 
-L 265.090877 66.517578 
-L 265.525342 57.317256 
-L 265.780909 63.612598 
-L 265.908693 51.646876 
-L 266.189817 62.085025 
-L 266.343157 57.419238 
-L 266.982075 69.219213 
-L 267.109859 59.980004 
-L 267.237643 62.691181 
-L 267.697664 65.343264 
-L 267.978788 71.343335 
-L 268.055458 21.97125 
-L 268.566593 65.536831 
-L 269.026614 60.849747 
-L 269.921099 59.724567 
-L 270.048883 62.364467 
-L 271.607844 65.863268 
-L 271.6334 57.67506 
-L 272.451216 68.467232 
-L 273.754609 60.0203 
-L 273.98462 67.269827 
-L 274.853549 56.286939 
-L 275.134673 54.433909 
-L 275.441354 62.602975 
-L 275.875818 67.154338 
-L 277.409222 54.224839 
-L 278.022583 53.090679 
-L 278.789285 62.290766 
-L 278.891512 52.026975 
-L 279.249307 55.834204 
-L 279.683771 64.339241 
-L 279.837111 64.981234 
-L 280.910494 59.423124 
-L 281.319402 71.123809 
-L 281.600526 58.453428 
-L 281.830536 64.940661 
-L 282.03499 63.59276 
-L 282.546125 70.531814 
-L 282.597238 53.17881 
-L 282.673909 57.462393 
-L 282.878362 66.666924 
-L 283.389497 61.350349 
-L 283.466167 63.070148 
-L 283.593951 52.85757 
-L 283.823962 62.545406 
-L 286.124067 62.826131 
-L 286.149624 56.953993 
-L 286.200738 64.578119 
-L 286.916326 54.035607 
-L 287.171893 67.359115 
-L 287.555244 60.539642 
-L 288.654184 59.5487 
-L 288.833081 61.452264 
-L 289.318659 56.681426 
-L 289.548669 61.235749 
-L 290.392042 61.010471 
-L 290.417598 53.840799 
-L 290.647609 65.429877 
-L 291.618765 58.800441 
-L 291.823219 64.036096 
-L 291.951002 55.201502 
-L 292.768818 64.387604 
-L 293.969984 66.623274 
-L 294.072211 48.145844 
-L 294.660016 70.013277 
-L 295.120037 55.045725 
-L 295.196707 60.98629 
-L 295.733398 52.148183 
-L 296.014523 52.224718 
-L 296.627884 56.656147 
-L 296.806781 66.418975 
-L 297.241246 57.007185 
-L 297.369029 60.852036 
-L 297.905721 62.013194 
-L 297.956834 55.664374 
-L 298.084618 57.95638 
-L 298.365742 54.920165 
-L 298.672423 56.500621 
-L 299.106887 52.578548 
-L 299.566908 51.899848 
-L 299.720249 58.700715 
-L 299.975816 50.183227 
-L 300.461394 59.478437 
-L 301.151426 63.428355 
-L 301.355879 53.982918 
-L 301.892571 57.887459 
-L 302.429262 55.947036 
-L 303.707099 64.560779 
-L 303.885996 53.716338 
-L 305.266059 58.689806 
-L 305.521627 55.765962 
-L 305.700524 51.366906 
-L 306.390556 55.107863 
-L 306.927247 51.547971 
-L 307.182814 57.649269 
-L 307.591722 54.220856 
-L 307.821733 50.013011 
-L 308.639548 56.466118 
-L 309.176239 52.212191 
-L 310.275179 56.057578 
-L 310.351849 57.063957 
-L 310.862984 56.588332 
-L 311.041881 57.754286 
-L 311.706356 58.755852 
-L 313.495327 50.64656 
-L 313.725338 52.783836 
-L 313.904235 51.842505 
-L 314.236472 46.944817 
-L 314.79872 47.771656 
-L 315.079844 57.524842 
-L 315.769876 46.506151 
-L 316.383238 49.014354 
-L 316.536578 46.694721 
-L 317.124383 48.952644 
-L 317.584404 52.497821 
-L 319.373375 46.05459 
-L 319.603386 50.046633 
-L 320.497871 51.342943 
-L 321.21346 52.602829 
-L 321.29013 54.59356 
-L 322.312399 48.049715 
-L 322.925761 52.508771 
-L 324.586949 54.441254 
-L 326.580374 51.331523 
-L 326.708157 46.162743 
-L 326.784827 48.722973 
-L 327.142622 47.792332 
-L 327.449302 50.44626 
-L 328.037107 46.420964 
-L 328.190448 51.902061 
-L 328.573799 45.894377 
-L 328.727139 49.804284 
-L 328.982706 45.618776 
-L 329.596068 50.27321 
-L 330.030532 51.198065 
-L 330.59278 54.017639 
-L 331.563936 48.159913 
-L 331.84506 49.350267 
-L 332.356195 46.355748 
-L 332.535092 52.910008 
-L 332.662876 50.674363 
-L 334.656301 48.609932 
-L 335.499673 51.438577 
-L 335.883024 52.099745 
-L 336.164148 54.738714 
-L 336.905293 48.21962 
-L 337.263087 53.635804 
-L 337.544211 49.806523 
-L 337.799779 49.457447 
-L 337.902006 49.950763 
-L 337.927562 51.478983 
-L 338.643151 48.214178 
-L 338.873162 50.771314 
-L 339.460966 50.137489 
-L 339.486523 54.520522 
-L 339.793204 51.937629 
-L 340.585463 51.859082 
-L 340.815473 49.368704 
-L 341.249938 52.676933 
-L 341.377721 47.98927 
-L 341.607732 49.054584 
-L 341.812186 47.908426 
-L 342.01664 49.14995 
-L 342.451104 49.45655 
-L 343.217806 53.422667 
-L 343.473373 48.027906 
-L 344.418972 46.062019 
-L 344.648983 54.350608 
-L 344.67454 50.058204 
-L 345.236788 49.833564 
-L 345.415685 49.012359 
-L 346.131273 47.771186 
-L 346.15683 50.560659 
-L 346.386841 51.179216 
-L 346.514624 52.44151 
-L 346.795748 51.460897 
-L 347.025759 50.018226 
-L 347.383553 48.846117 
-L 348.354709 51.195575 
-L 348.431379 46.730725 
-L 348.66139 50.230591 
-L 349.300308 48.890195 
-L 349.402535 49.680452 
-L 349.632546 48.914058 
-L 349.99034 51.520461 
-L 350.14368 51.133269 
-L 350.194794 46.686186 
-L 351.063723 51.082014 
-L 351.217063 49.756652 
-L 351.370403 49.677945 
-L 351.421517 47.953233 
-L 351.702641 47.476132 
-L 351.830424 48.992412 
-L 352.188219 51.289097 
-L 352.418229 51.135549 
-L 353.466055 47.619761 
-L 353.951633 51.985941 
-L 354.641665 48.585516 
-L 355.331697 49.487967 
-L 355.970615 50.123017 
-L 355.996172 52.759336 
-L 357.580689 50.196717 
-L 357.8107 50.155398 
-L 358.781855 48.807423 
-L 359.574114 51.611635 
-L 360.085249 46.428502 
-L 360.570827 49.383235 
-L 361.363085 47.780032 
-L 361.567539 51.187534 
-L 361.618653 48.869821 
-L 362.487582 48.090153 
-L 362.922046 48.262356 
-L 363.433181 47.362789 
-L 364.148769 47.677363 
-L 364.225439 47.570652 
-L 364.250996 47.682293 
-L 364.404336 50.449656 
-L 364.45545 45.041831 
-L 364.889914 47.833249 
-L 365.094368 48.20348 
-L 365.324379 51.454206 
-L 365.70773 50.83274 
-L 366.116637 50.720554 
-L 367.11335 49.054768 
-L 367.420031 50.833997 
-L 367.471144 54.21092 
-L 367.726712 47.795493 
-L 368.007836 48.703621 
-L 368.36563 50.240678 
-L 368.416743 51.984071 
-L 368.851208 48.70565 
-L 369.336786 48.015396 
-L 370.256828 45.794399 
-L 370.94686 51.559576 
-L 371.1002 47.420039 
-L 371.330211 48.574029 
-L 372.096913 47.254913 
-L 372.684718 49.866859 
-L 372.710274 51.095664 
-L 373.170295 50.435737 
-L 373.885884 47.810745 
-L 374.013668 49.365963 
-L 374.703699 48.223049 
-L 375.035937 52.705373 
-L 375.112607 48.907451 
-L 375.623742 49.730416 
-L 375.751525 46.842055 
-L 376.10932 47.827699 
-L 376.364887 50.262813 
-L 376.492671 53.153346 
-L 376.671568 47.373413 
-L 377.157146 52.631496 
-L 377.463826 50.714265 
-L 378.358312 48.912155 
-L 379.942829 48.173932 
-L 380.32618 48.236398 
-L 380.607304 48.790486 
-L 380.709531 47.260548 
-L 381.118439 49.592313 
-L 382.191822 49.291164 
-L 383.316318 49.541981 
-L 383.827453 47.489162 
-L 383.904123 51.251358 
-L 384.31303 49.549426 
-L 384.721938 50.308157 
-L 386.536466 46.189868 
-L 386.766477 47.156419 
-L 387.558735 48.670619 
-L 388.044313 53.455627 
-L 388.120983 46.629975 
-L 388.683232 50.706618 
-L 390.344419 47.066201 
-L 390.497759 45.659307 
-L 390.548873 51.630115 
-L 391.085564 47.370361 
-L 391.647812 51.439709 
-L 392.388958 47.727033 
-L 393.564567 49.626095 
-L 394.280156 49.042912 
-L 395.788003 48.568721 
-L 396.196911 47.811491 
-L 396.989169 48.385979 
-L 397.193623 48.794636 
-L 397.730315 46.54898 
-L 398.497017 49.119548 
-L 398.829254 48.770044 
-L 399.161492 45.729519 
-L 399.314832 48.335629 
-L 400.413771 48.153876 
-L 400.924906 47.4518 
-L 402.407196 42.903942 
-L 402.841661 51.564841 
-L 403.531693 50.177382 
-L 403.761703 46.776488 
-L 404.068384 46.164823 
-L 404.375065 53.072099 
-L 404.758416 48.664767 
-L 404.860643 51.601775 
-L 405.295107 50.950015 
-L 405.755128 48.230394 
-L 406.215149 48.859902 
-L 406.5985 48.619029 
-L 406.854068 48.944553 
-L 406.930738 50.136449 
-L 407.237419 49.56394 
-L 407.365202 50.162164 
-L 408.080791 48.715779 
-L 408.745266 50.077254 
-L 409.588638 46.284219 
-L 409.971989 47.268546 
-L 410.892031 50.788553 
-L 411.019815 46.472043 
-L 412.246538 51.01918 
-L 412.348765 47.05873 
-L 412.8599 49.987689 
-L 414.11218 48.539384 
-L 414.776655 49.955845 
-L 414.853325 48.827126 
-L 415.926708 51.438133 
-L 416.335615 49.227709 
-L 417.613452 49.533353 
-L 417.817906 50.413375 
-L 417.971246 50.216891 
-L 419.249083 46.515333 
-L 419.325753 44.431868 
-L 419.402423 47.493505 
-L 419.734661 51.881687 
-L 420.424692 47.752556 
-L 421.063611 53.824994 
-L 421.242508 50.799956 
-L 421.804756 50.227397 
-L 422.341447 51.348829 
-L 422.673685 49.421444 
-L 423.56817 48.14597 
-L 424.155975 51.095438 
-L 424.232645 49.292874 
-L 424.564883 50.86492 
-L 424.82045 49.213975 
-L 425.91939 51.405106 
-L 425.944946 49.225395 
-L 426.430524 48.431859 
-L 426.507194 48.78626 
-L 426.711648 52.44701 
-L 426.737205 49.393162 
-L 426.762762 52.40113 
-L 426.916102 47.810745 
-L 427.427237 48.529884 
-L 427.47835 48.862208 
-L 429.216208 51.06174 
-L 429.574002 46.572943 
-L 429.727343 47.759046 
-L 430.596271 48.902127 
-L 431.644097 50.914129 
-L 432.359686 50.837284 
-L 433.049718 47.726262 
-L 433.177501 48.580502 
-L 433.330842 50.801499 
-L 433.918647 50.684869 
-L 434.864246 49.486869 
-L 434.889802 48.765835 
-L 435.043143 51.008078 
-L 435.273153 51.385075 
-L 436.014299 48.540021 
-L 436.167639 52.631236 
-L 436.781001 48.630809 
-L 437.394362 49.014136 
-L 437.675486 50.258478 
-L 438.953323 49.910182 
-L 439.566684 47.237154 
-L 440.154489 46.710719 
-L 441.074531 48.073963 
-L 441.687893 49.349118 
-L 441.739006 49.018178 
-L 441.764563 50.046734 
-L 443.297967 50.994596 
-L 444.60136 46.85776 
-L 444.831371 47.57165 
-L 444.933598 50.316567 
-L 445.086938 49.211929 
-L 445.495846 53.470862 
-L 446.594786 46.608905 
-L 446.901466 49.666769 
-L 447.438158 51.120617 
-L 447.463714 52.973697 
-L 447.565941 47.513939 
-L 447.668168 49.588649 
-L 447.770395 47.513897 
-L 448.20486 50.569312 
-L 448.3582 49.505181 
-L 448.460427 53.901202 
-L 448.51154 49.858784 
-L 449.150459 47.761829 
-L 449.636037 49.248746 
-L 449.814934 52.621343 
-L 449.84049 47.399346 
-L 450.326068 49.200224 
-L 451.143884 51.18662 
-L 451.16944 53.996107 
-L 451.194997 50.583616 
-L 451.808359 51.519631 
-L 452.166153 44.753493 
-L 453.469546 48.855114 
-L 453.776227 47.351479 
-L 455.386301 49.442355 
-L 456.459684 48.377594 
-L 456.561911 52.383488 
-L 457.686407 46.238213 
-L 457.737521 49.267402 
-L 458.171985 51.780367 
-L 459.117584 51.004792 
-L 459.884286 54.664351 
-L 460.01207 48.611248 
-L 460.063183 50.706124 
-L 460.31875 51.042589 
-L 460.778772 54.195317 
-L 461.366576 51.165575 
-L 461.801041 50.979462 
-L 461.954381 46.609601 
-L 462.133278 51.603544 
-L 463.334445 51.900669 
-L 463.462228 46.953176 
-L 463.871136 46.813682 
-L 464.024477 50.936843 
-L 464.280044 47.674789 
-L 464.740065 50.136306 
-L 464.918962 49.089413 
-L 465.174529 46.912956 
-L 465.225643 50.641437 
-L 465.55788 50.31266 
-L 466.043458 50.664025 
-L 466.554593 48.065779 
-L 466.835717 51.001706 
-L 468.036883 50.412126 
-L 468.343564 51.581233 
-L 468.624688 49.008167 
-L 470.260319 55.048534 
-L 471.052578 50.696507 
-L 471.998177 51.720501 
-L 472.611538 48.145769 
-L 472.841549 47.936053 
-L 472.994889 48.47712 
-L 473.37824 49.237343 
-L 473.812705 48.966126 
-L 474.170499 45.417025 
-L 474.247169 47.514945 
-L 474.732747 49.15618 
-L 475.218325 48.004371 
-L 477.262864 49.236605 
-L 478.106236 48.733152 
-L 478.31069 47.087909 
-L 478.46403 49.698127 
-L 479.077391 47.82162 
-L 479.102948 50.067108 
-L 479.281845 49.490113 
-L 480.074104 48.572503 
-L 480.764136 46.888858 
-L 481.070817 49.060235 
-L 481.505281 48.737285 
-L 481.607508 50.815392 
-L 483.115355 48.861805 
-L 483.447593 49.839986 
-L 483.805387 44.22741 
-L 483.958727 50.125306 
-L 484.444305 47.710633 
-L 485.006553 46.271902 
-L 485.338791 51.730345 
-L 486.846638 51.742653 
-L 487.408886 46.826292 
-L 487.511113 53.495068 
-L 487.562226 50.773477 
-L 487.587783 51.018299 
-L 487.84335 49.35596 
-L 488.354485 51.307803 
-L 489.01896 47.620113 
-L 489.887889 48.955562 
-L 490.1179 52.345238 
-L 491.549077 46.7349 
-L 492.92914 49.262119 
-L 493.593615 47.1873 
-L 493.721399 48.253485 
-L 494.232533 47.014912 
-L 495.535927 47.581711 
-L 495.638154 50.636976 
-L 496.455969 50.139124 
-L 497.708249 48.211093 
-L 498.219383 51.12605 
-L 499.037199 49.121728 
-L 499.292766 49.688946 
-L 499.318323 51.822114 
-L 499.957241 49.693264 
-L 500.085025 47.522281 
-L 500.187252 48.319489 
-L 500.545046 46.660688 
-L 501.618429 51.729154 
-L 502.00178 45.922944 
-L 502.257347 46.845786 
-L 504.174102 45.270798 
-L 505.886403 49.875277 
-L 506.678662 50.710844 
-L 507.547591 50.25053 
-L 507.573147 51.801018 
-L 508.135395 47.404603 
-L 509.106551 47.328983 
-L 509.234335 49.139436 
-L 509.362118 49.094377 
-L 509.617686 50.789433 
-L 510.307718 49.402754 
-L 510.333274 47.21029 
-L 510.512171 48.015338 
-L 510.869966 49.031308 
-L 511.15109 45.373786 
-L 511.611111 46.751451 
-L 511.662224 46.703173 
-L 512.250029 51.368214 
-L 512.301143 47.02328 
-L 512.377813 51.090541 
-L 512.863391 49.396089 
-L 513.757876 51.058118 
-L 514.090114 45.915339 
-L 514.192341 50.834744 
-L 514.524578 47.639464 
-L 514.550135 48.393617 
-L 514.805702 49.742792 
-L 515.086826 48.982677 
-L 515.342394 47.873026 
-L 515.546848 48.929418 
-L 515.802415 49.615027 
-L 517.054695 45.269473 
-L 517.259149 51.392294 
-L 517.361375 48.801905 
-L 518.076964 48.78574 
-L 518.434758 50.090334 
-L 518.588099 48.558417 
-L 518.945893 46.774693 
-L 518.997006 49.219501 
-L 519.175903 47.891992 
-L 519.27813 48.278824 
-L 519.354801 45.707124 
-L 519.380357 47.792785 
-L 519.482584 51.216201 
-L 519.610368 48.759312 
-L 520.121503 48.588685 
-L 520.37707 48.385568 
-L 520.479297 46.327459 
-L 520.888204 46.811401 
-L 521.245999 48.852087 
-L 522.140484 51.30117 
-L 522.166041 52.709498 
-L 522.191598 49.488906 
-L 522.370495 49.959358 
-L 522.932743 45.430206 
-L 523.418321 46.987226 
-L 523.903899 48.081702 
-L 523.929456 49.912873 
-L 524.057239 49.272936 
-L 524.747271 48.001562 
-L 525.207292 47.77558 
-L 525.718427 49.888852 
-L 526.740696 49.93381 
-L 526.740696 49.93381 
-" style="fill:none;stroke:#4c72b0;stroke-linecap:round;stroke-width:1.5;"/>
-   </g>
-   <g id="patch_3">
-    <path d="M 47.367969 180.73125 
-L 47.367969 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:square;stroke-linejoin:miter;stroke-width:1.25;"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 549.567969 180.73125 
-L 549.567969 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:square;stroke-linejoin:miter;stroke-width:1.25;"/>
-   </g>
-   <g id="patch_5">
-    <path d="M 47.367969 180.73125 
-L 549.567969 180.73125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:square;stroke-linejoin:miter;stroke-width:1.25;"/>
-   </g>
-   <g id="patch_6">
-    <path d="M 47.367969 14.41125 
-L 549.567969 14.41125 
-" style="fill:none;stroke:#ffffff;stroke-linecap:square;stroke-linejoin:miter;stroke-width:1.25;"/>
-   </g>
-   <g id="text_17">
-    <!-- Discriminator loss -->
-    <defs>
-     <path d="M 10.09375 68.296875 
-C 9.59375 68.296875 9.296875 68 9.296875 67.5 
-L 9.296875 0.796875 
-C 9.296875 0.296875 9.59375 0 10.09375 0 
-L 31.703125 0 
-C 49.09375 0 59.796875 13 59.796875 34.203125 
-C 59.796875 55.40625 49.09375 68.296875 31.703125 68.296875 
-z
-M 13.59375 64.40625 
-L 31.703125 64.40625 
-C 46.703125 64.40625 55.40625 53.09375 55.40625 34.203125 
-C 55.40625 15.296875 46.703125 4 31.703125 4 
-L 13.59375 4 
-z
-" id="Neris-Thin-68"/>
-     <path d="M 40.203125 1.59375 
-C 40.703125 1.703125 40.90625 2.09375 40.703125 2.59375 
-L 40 4.796875 
-C 39.796875 5.203125 39.40625 5.40625 39 5.296875 
-L 36.40625 4.5 
-C 33.203125 3.5 30.09375 3.09375 27.296875 3.09375 
-C 15.703125 3.09375 9.59375 10.90625 9.59375 23.796875 
-C 9.59375 36.703125 15.5 44.5 27.59375 44.5 
-C 29.90625 44.5 32.703125 44.203125 35.796875 43.296875 
-L 38.203125 42.5 
-C 38.703125 42.40625 39.09375 42.59375 39.296875 43.09375 
-L 40 45.296875 
-C 40.203125 45.796875 40 46.203125 39.5 46.296875 
-L 37 47 
-C 33.703125 48 30.703125 48.59375 27.5 48.59375 
-C 13 48.59375 5.40625 39.09375 5.40625 23.796875 
-C 5.40625 8.59375 13.09375 -1 27.40625 -1 
-C 31 -1 34.296875 -0.203125 37.59375 0.796875 
-z
-" id="Neris-Thin-99"/>
-     <path d="M 12.296875 46.796875 
-C 12.296875 47.296875 12 47.59375 11.5 47.59375 
-L 9.09375 47.59375 
-C 8.59375 47.59375 8.296875 47.296875 8.296875 46.796875 
-L 8.296875 0.796875 
-C 8.296875 0.296875 8.59375 0 9.09375 0 
-L 11.703125 0 
-C 12.203125 0 12.5 0.296875 12.5 0.796875 
-L 12.5 22 
-C 12.5 35 17.40625 44.5 29.296875 44.5 
-C 36.796875 44.5 41.296875 38.59375 41.296875 28.90625 
-L 41.296875 0.796875 
-C 41.296875 0.296875 41.59375 0 42.09375 0 
-L 44.59375 0 
-C 45.09375 0 45.40625 0.296875 45.40625 0.796875 
-L 45.40625 22 
-C 45.40625 35 50.40625 44.5 62.40625 44.5 
-C 69.90625 44.5 74.203125 38.59375 74.203125 28.796875 
-L 74.203125 0.796875 
-C 74.203125 0.296875 74.5 0 75 0 
-L 77.59375 0 
-C 78.09375 0 78.40625 0.296875 78.40625 0.796875 
-L 78.40625 29 
-C 78.40625 41 72.296875 48.59375 62.5 48.59375 
-C 54.796875 48.59375 49.296875 45.40625 45.203125 38.296875 
-C 44.796875 37.59375 44 37.5 43.703125 38.40625 
-C 41.703125 43.796875 37.296875 48.59375 29.5 48.59375 
-C 21.703125 48.59375 17.203125 45.40625 13.40625 39.703125 
-C 12.90625 38.90625 12.296875 39 12.296875 39.796875 
-z
-" id="Neris-Thin-109"/>
-     <path id="Neris-Thin-32"/>
-     <path d="M 12.5 69.296875 
-C 12.5 69.796875 12.203125 70.09375 11.703125 70.09375 
-L 9.09375 70.09375 
-C 8.59375 70.09375 8.296875 69.796875 8.296875 69.296875 
-L 8.296875 7 
-C 8.296875 2 11 -1 15.40625 -1 
-C 16.296875 -1 17.203125 -0.796875 18 -0.59375 
-C 18.5 -0.40625 18.59375 0 18.40625 0.40625 
-L 17.40625 2.796875 
-C 17.203125 3.203125 16.90625 3.296875 16.40625 3.203125 
-C 16.09375 3.09375 15.796875 3.09375 15.40625 3.09375 
-C 13.59375 3.09375 12.5 4.59375 12.5 7 
-z
-" id="Neris-Thin-108"/>
-    </defs>
-    <g style="fill:#262626;" transform="translate(252.227656 8.41125)scale(0.12 -0.12)">
-     <use xlink:href="#Neris-Thin-68"/>
-     <use x="65.699997" xlink:href="#Neris-Thin-105"/>
-     <use x="89.299988" xlink:href="#Neris-Thin-115"/>
-     <use x="135.799973" xlink:href="#Neris-Thin-99"/>
-     <use x="182.199966" xlink:href="#Neris-Thin-114"/>
-     <use x="218.399963" xlink:href="#Neris-Thin-105"/>
-     <use x="241.999954" xlink:href="#Neris-Thin-109"/>
-     <use x="328.199936" xlink:href="#Neris-Thin-105"/>
-     <use x="351.799927" xlink:href="#Neris-Thin-110"/>
-     <use x="407.399918" xlink:href="#Neris-Thin-97"/>
-     <use x="457.499908" xlink:href="#Neris-Thin-116"/>
-     <use x="489.599899" xlink:href="#Neris-Thin-111"/>
-     <use x="542.69989" xlink:href="#Neris-Thin-114"/>
-     <use x="578.899887" xlink:href="#Neris-Thin-32"/>
-     <use x="600.799881" xlink:href="#Neris-Thin-108"/>
-     <use x="624.599869" xlink:href="#Neris-Thin-111"/>
-     <use x="677.69986" xlink:href="#Neris-Thin-115"/>
-     <use x="724.199844" xlink:href="#Neris-Thin-115"/>
-    </g>
-   </g>
-  </g>
- </g>
- <defs>
-  <clipPath id="pdc0481f6d2">
-   <rect height="166.32" width="502.2" x="47.367969" y="14.41125"/>
-  </clipPath>
- </defs>
+  <defs
+     id="defs354">
+    <clipPath
+       id="pdc0481f6d2"
+       style="stroke-linecap:butt;stroke-linejoin:round">
+      <rect
+         height="166.32001"
+         width="502.20001"
+         x="47.36797"
+         y="14.41125"
+         id="rect351"
+         style="stroke-linecap:butt;stroke-linejoin:round" />
+    </clipPath>
+  </defs>
 </svg>

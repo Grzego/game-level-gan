@@ -8,7 +8,7 @@ As a proof of concept, a simple racing game was chosen to be used to evaluate if
 
 
 # Concept
-![diagram of a system from the poster](/images/concept-diagram.svg)
+![diagram of a system from the poster](/images/concept-diagram-2.svg)
 
 
 # Evaluation & Results
